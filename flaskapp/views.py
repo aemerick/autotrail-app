@@ -32,7 +32,7 @@ def homepage():
 
     # html to be included in <script>
     script_txt = Markup(folium_map.get_root().script.render())
-    return render_template("model_page.html", map_div=map_div, hdr_txt=hdr_txt, script_txt=script_txt)
+    return render_template("index.html", map_div=map_div, hdr_txt=hdr_txt, script_txt=script_txt)
 
 
 
