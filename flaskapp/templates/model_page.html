@@ -38,6 +38,19 @@
 
   <!--here's the input container-->
 
+  <head>
+      {{ hdr_txt  }}
+  </head>
+  <body>
+      <hr/>
+      {{ map_div }}
+      <hr/>
+  </body>
+  {# Note: script_txt MUST follow the body, so that div ids are defined to be referenced in the scripts #}
+  <script>
+      {{ script_txt }}
+  </script>
+
 <div class="container">
 
    <div class="starter-template">
@@ -48,10 +61,11 @@
 
    <div class = "container">
 
+  <!--
      <div class="container theme-showcase" role="main">
        <img src="static/images/test_map2.png" alt="Image" style="width:500px;height:500px;">
      </div>
-
+-->
       <b1>Zoom and scroll on the map above to choose start / end points for your activity</b1>
 
      <div class="form-group">
