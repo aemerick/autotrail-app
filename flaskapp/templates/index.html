@@ -76,7 +76,7 @@
        <label for="units2"> Metric (meters, kilometers) </label>
      </fieldset>
 
-     <form action="/model_output" method="GET">
+     <form action="/api/model_input" method="GET">
        <div class="form-group">
          <label for="distance">Distance Range (mi):</label>
          <input type="number" id="mindistance" name='mindistance' placeholder="e.g. 10.0 ">
@@ -109,7 +109,8 @@
        </div>
 
        <div>
-         <button type="submit" class="btn btn-default btn-lg">Generate Route!</button>
+         <!-- action="{{url_for('model_input')}}" -->
+         <button type="submit"  class="btn btn-default btn-lg">Generate Route!</button>
        </div>
 
      </form>
