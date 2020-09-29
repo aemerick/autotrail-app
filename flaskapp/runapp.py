@@ -10,10 +10,20 @@ import json
 from .forms import RouteProperties
 
 
-@app.route('/')
+@app.route('/',  methods=["GET","POST"])
 def homepage():
-    start_coords = (40.0150, -105.2705)
-    folium_map = folium.Map(location=start_coords, zoom_start=13, width='80%')
+
+    if request.method == "POST":
+        longitude = request.form["startng"]
+        latitude = request.form["startlat"]
+
+        print("working in homepage")
+
+
+        return render_template("index.html", error='testing')
+
+    #start_coords = (40.0150, -105.2705)
+    #folium_map = folium.Map(location=start_coords, zoom_start=13, width='80%')
 
     # Extract the components of the web map
 
@@ -25,28 +35,30 @@ def homepage():
     #  The scripts needed to run
 
     # first, force map to render as HTML, for us to dissect
-    _ = folium_map._repr_html_()
+#    _ = folium_map._repr_html_()
 
     # get definition of map in body
-    map_div = Markup(folium_map.get_root().html.render())
+#    map_div = Markup(folium_map.get_root().html.render())
 
     # html to be included in header
-    hdr_txt = Markup(folium_map.get_root().header.render())
+#    hdr_txt = Markup(folium_map.get_root().header.render())
 
     # html to be included in <script>
-    script_txt = Markup(folium_map.get_root().script.render())
+#    script_txt = Markup(folium_map.get_root().script.render())
 
 
     error = request.args.get('error',None)
-    return render_template("index.html", map_div=map_div,
-                                         hdr_txt=hdr_txt,
-                                         script_txt=script_txt,
-                                         error=error)
+    return render_template("index.html", error=error)
+    #, map_div=map_div,
+    #                                     hdr_txt=hdr_txt,
+#                                         script_txt=script_txt,
+#                                         error=error)
 
 @app.route('/api/model_input', methods=['GET'])
 def model_input():
 
     if request.method == 'GET':
+        print('========',request.args)
 
         string_args = ['units']
         float_args = ['mindistance',
@@ -139,6 +151,22 @@ def model_output():
     return render_template("model_output.html", trailroutes=trailroutes,
                                                 eu = eu,
                                                 du = du)
+
+
+
+@app.route('/mapclick')
+def mapclick():
+
+  startlng = request.args.get('startlng', '', type=float)
+  startlat = request.args.get('startlat', '', type=float)
+
+  endlng = request.args.get('endlng','',type=float)
+  endlat = request.args.get('endlat','',type=float)
+
+  return redirect(url_for('homepage', startlat=startlat, startlng=startlng,
+                                      endlat=endlat, endlng=endlng))
+  #return render_template("form.html", longitude=longitude, latitude=latitude)
+
 
 
 def run_from_input(results, units='english'):

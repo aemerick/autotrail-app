@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+
+  <!-- java script -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+
+  <!-- Leaflet JS (after the CSS!) -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""></script>
+
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -41,6 +59,7 @@
     <p class=error><strong>Error:</strong> {{ error }}
   {% endif %}
 
+<!--
   <head>
       {{ hdr_txt  }}
   </head>
@@ -53,6 +72,163 @@
   <script>
       {{ script_txt }}
   </script>
+-->
+
+<div class="container">
+
+  <div id="homemap" style=" position: fixed;
+                           top: 50px;
+                           left: 650px;
+                           bottom: 0;
+                           right: 0;
+                           width: 750px;
+                           height: 500px;
+                           overflow: auto;"></div>
+
+
+
+   <script type=text/javascript>
+
+        var homemap = L.map('homemap').setView([40.0150, -105.2705], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(homemap);
+
+
+        var queryDict = {};
+        location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
+
+        var startlat='', startlng='', endlat='', endlng='';
+        if ('startlat' in queryDict){
+          startlat = queryDict['startlat'];
+        }
+        if ('startlng' in queryDict){
+          startlng = queryDict['startlng'];
+        }
+        if ('endlat' in queryDict){
+          endlat = queryDict['endlat'];
+        }
+        if ('endlng' in queryDict){
+          endlng = queryDict['endlng'];
+        }
+
+        // not a great assumption, but fine since they should always be together
+        if (typeof(startlat) != 'undefined' && startlat != null && startlat != '')
+        {
+          startlat = parseFloat(startlat);
+          startlng = parseFloat(startlng);
+        }
+
+        if (typeof(endlat) != 'undefined' && endlat != null && endlat != '')
+        {
+          endlat = parseFloat(endlat);
+          endlng = parseFloat(endlng);
+        }
+
+        if  ((typeof(startlat) == 'undefined' || startlat == null || startlat == '') &&
+             (typeof(endlat) == 'undefined' || endlat == null || endlat == '')){
+
+               homemap.on('click',
+                 function(e){
+                 var coord = e.latlng; // no need for toString()
+                 var lat = coord.lat;
+                 var lng = coord.lng;
+                 var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
+                 .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'"> here</a>').openPopup();
+               });
+
+        }
+
+        // Check if start lat and long have already been selected.
+        // If they have, then persist the start point with an optional
+        // reset button, and add in click detect for an end point. otherwise
+        // just show the start point click detect.
+        if (typeof(startlat) != 'undefined' && startlat != null && startlat != '') {
+
+          // show point with reset button, but save end coords if they exist
+          if (typeof(endlat) != 'undefined' && endlat != null && endlat != '') {
+              L.marker([startlat,startlng]).addTo(homemap)
+                        .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+endlat+'&endlng='+endlng+'">reset</a>)')
+                        .openPopup();
+
+              L.marker([endlat,endlng]).addTo(homemap)
+                                  .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+startlng+'&endlng='+startlng+'">reset</a>)')
+                                  .openPopup();
+          } else {
+            L.marker([startlat,startlng]).addTo(homemap)
+                      .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?">reset</a>)')
+                      .openPopup();
+
+            homemap.on('click',
+               function(e){
+                var coord = e.latlng; // no need for toString()
+                var lat = coord.lat;
+                var lng = coord.lng;
+                var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
+                  .bindPopup('End 1Point <a href="{{ url_for('mapclick') }}?startlat='+startlat+'&startlng='+startlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
+             });
+             L.marker([40.0150, -105.2705]).addTo(homemap)
+                   .bindPopup('Boulder, CO.')
+                   .openPopup();
+
+
+          }
+
+        }
+
+        //  L.marker([40.0150, -105.2705]).addTo(homemap)
+        //      .bindPopup('Boulder, CO.')
+        //      .openPopup();
+        //}
+
+        // Same as above, but for the end point
+        if (typeof(endlat) != 'undefined' && endlat != null && endlat != ''){
+          // show point with reset button, but save start coords if they exist
+          if (typeof(startlat) != 'undefined' && startlat != null && startlat !=''){
+             L.marker([startlat,startlng]).addTo(homemap)
+                      .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+endtlat+'&endlng='+endlng+'">reset</a>)')
+                      .openPopup();
+
+              L.marker([endlat,endlng]).addTo(homemap)
+                        .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+endtlat+'&startlng='+startlng+'">reset</a>)')
+                        .openPopup();
+          } else {
+            L.marker([endlat,endlng]).addTo(homemap)
+                      .bindPopup('End Point (<a href="{{ url_for('homepage') }}?">reset</a>)')
+                      .openPopup();
+
+            // just in case
+              homemap.on('click',
+                function(e){
+                var coord = e.latlng; // no need for toString()
+                var lat = coord.lat;
+                var lng = coord.lng;
+                var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
+                .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'&endlat='+endlat+'&endlng='+endlng+'"> here</a>').openPopup();
+              });
+          }
+       }
+       //else {
+
+        // homemap.on('click',
+          // function(e,endlat,endlng){
+    //       var coord = e.latlng; // no need for toString()
+      //     var lat = coord.lat;
+        //   var lng = coord.lng;
+        //   var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
+        //   .bindPopup('End Point <a href="{{ url_for('mapclick') }}?startlat='+startlat+'&startlng='+startlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
+        // });
+      // }
+
+
+
+
+
+   </script>
+
+ </div>
+
 
 <div class="container">
 
@@ -129,6 +305,13 @@
        </div>
 
      </form>
+
+     <form action="/" method="GET">
+       <div>
+         <button type="submit"  class="btn btn-default btn-lg">Reset Map and Parameters</button>
+       </div>
+    </form>
+
    </div>
 
    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
