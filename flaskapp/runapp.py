@@ -48,8 +48,14 @@ def homepage():
 
 
     error = request.args.get('error',None)
-    return render_template("index.html", error=error)
-    #, map_div=map_div,
+    startlat = request.args.get('startlat', '', type=float)
+    startlng = request.args.get('startlng', '', type=float)
+    endlat = request.args.get('endlat', '', type=float)
+    endlng = request.args.get('endlng', '', type=float)
+
+    return render_template("index.html", error=error,startlat=startlat,
+                                         startlng=startlng,
+                                         endlat=endlat, endlng=endlng)
     #                                     hdr_txt=hdr_txt,
 #                                         script_txt=script_txt,
 #                                         error=error)
@@ -67,7 +73,7 @@ def model_input():
                       'maxelevation',
                       'maxgrade',
                       'backtrack',
-                      'numroutes']
+                      'numroutes','startlat','startlng','endlat','endlng']
 
         results = {}
 
@@ -179,6 +185,18 @@ def run_from_input(results, units='english'):
     outname = '/home/aemerick/code/autotrail/autotrail/data/boulder_area_trail_processed'
     trailmap = gpx_process.load_graph(outname)
     trailmap.ensure_edge_attributes()
+
+    start_node = trailmap.nearest_node(results['startlng'], results['startlat'])[1]
+    if (results['endlat'] in [None,'']) or (not (type(results['endlat']) in [float,int])):
+        end_node = start_node
+    else:
+        end_node = trailmap.nearest_node(results['endlng'], results['endlat'])[1]
+
+    print("CHOSEN NODES: ", start_node, end_node)
+
+    if (start_node == None) or (end_node == None):
+        print("Cannot find a node!!")
+        raise RuntimeError
 
     distance = 0.5*(float(results['mindistance']) + float(results['maxdistance']))
 

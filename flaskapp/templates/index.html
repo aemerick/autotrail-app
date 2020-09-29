@@ -54,10 +54,11 @@
 <br><br>
 -->
 
-  <!--here's the input container-->
+  <!--here's the input container -->
   {% if error %}
     <p class=error><strong>Error:</strong> {{ error }}
   {% endif %}
+
 
 <!--
   <head>
@@ -99,35 +100,35 @@
         var queryDict = {};
         location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
 
-        var startlat='', startlng='', endlat='', endlng='';
+        var jstartlat='', jstartlng='', jendlat='', jendlng='';
         if ('startlat' in queryDict){
-          startlat = queryDict['startlat'];
+          jstartlat = queryDict['startlat'];
         }
         if ('startlng' in queryDict){
-          startlng = queryDict['startlng'];
+          jstartlng = queryDict['startlng'];
         }
         if ('endlat' in queryDict){
-          endlat = queryDict['endlat'];
+          jendlat = queryDict['endlat'];
         }
         if ('endlng' in queryDict){
-          endlng = queryDict['endlng'];
+          jendlng = queryDict['endlng'];
         }
 
         // not a great assumption, but fine since they should always be together
-        if (typeof(startlat) != 'undefined' && startlat != null && startlat != '')
+        if (typeof(jstartlat) != 'undefined' && jstartlat != null && jstartlat != '')
         {
-          startlat = parseFloat(startlat);
-          startlng = parseFloat(startlng);
+          jstartlat = parseFloat(jstartlat);
+          jstartlng = parseFloat(jstartlng);
         }
 
-        if (typeof(endlat) != 'undefined' && endlat != null && endlat != '')
+        if (typeof(jendlat) != 'undefined' && jendlat != null && jendlat != '')
         {
-          endlat = parseFloat(endlat);
-          endlng = parseFloat(endlng);
+          jendlat = parseFloat(jendlat);
+          jendlng = parseFloat(jendlng);
         }
 
-        if  ((typeof(startlat) == 'undefined' || startlat == null || startlat == '') &&
-             (typeof(endlat) == 'undefined' || endlat == null || endlat == '')){
+        if  ((typeof(jstartlat) == 'undefined' || jstartlat == null || jstartlat == '') &&
+             (typeof(jendlat) == 'undefined' || jendlat == null || jendlat == '')){
 
                homemap.on('click',
                  function(e){
@@ -144,19 +145,19 @@
         // If they have, then persist the start point with an optional
         // reset button, and add in click detect for an end point. otherwise
         // just show the start point click detect.
-        if (typeof(startlat) != 'undefined' && startlat != null && startlat != '') {
+        if (typeof(jstartlat) != 'undefined' && jstartlat != null && jstartlat != '') {
 
           // show point with reset button, but save end coords if they exist
-          if (typeof(endlat) != 'undefined' && endlat != null && endlat != '') {
-              L.marker([startlat,startlng]).addTo(homemap)
-                        .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+endlat+'&endlng='+endlng+'">reset</a>)')
+          if (typeof(jendlat) != 'undefined' && jendlat != null && jendlat != '') {
+              L.marker([jstartlat,jstartlng]).addTo(homemap)
+                        .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+jendlat+'&endlng='+jendlng+'">reset</a>)')
                         .openPopup();
 
-              L.marker([endlat,endlng]).addTo(homemap)
-                                  .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+startlng+'&endlng='+startlng+'">reset</a>)')
+              L.marker([jendlat,jendlng]).addTo(homemap)
+                                  .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+jstartlat+'&startlng='+jstartlng+'">reset</a>)')
                                   .openPopup();
           } else {
-            L.marker([startlat,startlng]).addTo(homemap)
+            L.marker([jstartlat,jstartlng]).addTo(homemap)
                       .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?">reset</a>)')
                       .openPopup();
 
@@ -166,11 +167,11 @@
                 var lat = coord.lat;
                 var lng = coord.lng;
                 var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
-                  .bindPopup('End 1Point <a href="{{ url_for('mapclick') }}?startlat='+startlat+'&startlng='+startlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
+                  .bindPopup('End Point <a href="{{ url_for('mapclick') }}?startlat='+jstartlat+'&startlng='+jstartlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
              });
-             L.marker([40.0150, -105.2705]).addTo(homemap)
-                   .bindPopup('Boulder, CO.')
-                   .openPopup();
+          //   L.marker([40.0150, -105.2705]).addTo(homemap)
+            //       .bindPopup('Boulder, CO.')
+              //     .openPopup();
 
 
           }
@@ -183,18 +184,18 @@
         //}
 
         // Same as above, but for the end point
-        if (typeof(endlat) != 'undefined' && endlat != null && endlat != ''){
+        if (typeof(jendlat) != 'undefined' && jendlat != null && jendlat != ''){
           // show point with reset button, but save start coords if they exist
-          if (typeof(startlat) != 'undefined' && startlat != null && startlat !=''){
-             L.marker([startlat,startlng]).addTo(homemap)
-                      .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+endtlat+'&endlng='+endlng+'">reset</a>)')
+          if (typeof(jstartlat) != 'undefined' && jstartlat != null && jstartlat !=''){
+             L.marker([jstartlat,jstartlng]).addTo(homemap)
+                      .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+jendtlat+'&endlng='+jendlng+'">reset</a>)')
                       .openPopup();
 
-              L.marker([endlat,endlng]).addTo(homemap)
-                        .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+endtlat+'&startlng='+startlng+'">reset</a>)')
+              L.marker([jendlat,jendlng]).addTo(homemap)
+                        .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+jstartlat+'&startlng='+jstartlng+'">reset</a>)')
                         .openPopup();
           } else {
-            L.marker([endlat,endlng]).addTo(homemap)
+            L.marker([jendlat,jendlng]).addTo(homemap)
                       .bindPopup('End Point (<a href="{{ url_for('homepage') }}?">reset</a>)')
                       .openPopup();
 
@@ -205,7 +206,7 @@
                 var lat = coord.lat;
                 var lng = coord.lng;
                 var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
-                .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'&endlat='+endlat+'&endlng='+endlng+'"> here</a>').openPopup();
+                .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'&endlat='+jendlat+'&endlng='+jendlng+'"> here</a>').openPopup();
               });
           }
        }
@@ -221,7 +222,11 @@
         // });
       // }
 
+        // var polylinePoints = [
+      //          [40.0150, -105.2705], [39.9150, -105.3705]
+      //   ];
 
+        // var polyline = L.polyline(polylinePoints).addTo(homemap);
 
 
 
@@ -297,6 +302,13 @@
        <div class="form-group">
         <label for"numroutes">Number of Routes (up to 10):</label>
         <input type="number" name="numroutes" min="1" max="10" value=5>
+       </div>
+
+       <div class="form-group">
+         <input id="startlat" name="startlat" type="hidden" value={{startlat}}>
+         <input id="startlng" name="startlng" type="hidden" value={{startlng}}>
+         <input id="endlat" name="endlat" type="hidden" value="5.4">
+         <input id="endlng" name="endlng" type="hidden" value={{endlng}}>
        </div>
 
        <div>
