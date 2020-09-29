@@ -8,7 +8,7 @@
   <meta name="author" content="">
   <link rel="icon" href="../../favicon.ico">
 
-  <title>You can display table data!</title>
+  <title>Plan-It Trails</title>
 
   <!-- Bootstrap core CSS -->
   <link href="../static/css/bootstrap.min.css" rel="stylesheet">
@@ -37,6 +37,9 @@
 -->
 
   <!--here's the input container-->
+  {% if error %}
+    <p class=error><strong>Error:</strong> {{ error }}
+  {% endif %}
 
   <head>
       {{ hdr_txt  }}
@@ -66,46 +69,58 @@
        <img src="static/images/test_map2.png" alt="Image" style="width:500px;height:500px;">
      </div>
 -->
-      <b1>Zoom and scroll on the map above to choose start / end points for your activity</b1>
 
-     <div class="form-group">
-       <label for="backtrack">Units: </label>
-       <input type="radio" id="units1" name='units' value="english">
-       <label for="units1"> English (feet, miles) </label>
-       <input type="radio" id="units2" name='units' value="metric">
-       <label for="units2"> Metric (meters, kilometers) </label>
-     </fieldset>
+
+      <b1>Zoom and scroll on the map above to choose start / end points for your activity</br>
+          Note: Long routes (> 30 mi) may take some time to compute. </b1>
+
+
 
      <form action="/api/model_input" method="GET">
+
+       <div class="form-group">
+         <label for="units">Units: </label>
+         <input type="radio" id="units1" name='units' value="english" checked="checked">
+         <label for="units1"> English (feet, miles) </label>
+         <input type="radio" id="units2" name='units' value="metric">
+         <label for="units2"> Metric (meters, kilometers) </label>
+       </fieldset>
+       </div>
+
        <div class="form-group">
          <label for="distance">Distance Range (mi):</label>
-         <input type="number" id="mindistance" name='mindistance' placeholder="e.g. 10.0 ">
-         <input type="number" id="maxdistance" name='maxdistance' placeholder="e.g. 15.0 ">
+         <input type="number" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0">
+         <input type="hidden" name="mindistance" value="-1.0"/>
+         <input type="number" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0 ">
        </div>
 
        <div class="form-group">
          <label for="elevation">Elevation Range (ft):</label>
-         <input type="number" id="minelevation" name='minelevation' placeholder="e.g. 1000.0 ">
-         <input type="number" id="maxelevation" name='maxelevation' placeholder="e.g. 3000.0 ">
+         <input type="number" id="minelevation" name='minelevation' min=0 max=100000  placeholder="e.g. 1000.0 ">
+         <input type="number" id="maxelevation" name='maxelevation' min=0 max=100000  placeholder="e.g. 3000.0 ">
        </div>
 
        <div class="form-group">
          <label for="grade">Max Grade (percent):</label>
-         <input type="number" id="maxgrade" name='maxgrade' placeholder="e.g.  5.0">
+         <input type="number" id="maxgrade" name='maxgrade' min=0 max=100 placeholder="e.g.  5.0">
        </div>
 
        <div class="form-group">
          <label for="backtrack">Avoid Backtracking:</label>
          <input type="radio" id="backtrack1" name='backtrack' value="1">
          <label for="backtrack1"> low </label>
-         <input type="radio" id="backtrack2" name='backtrack' value="2">
+         <input type="radio" id="backtrack2" name='backtrack' value="2" checked="checked">
          <label for="backtrack2"> medium </label>
          <input type="radio" id="backtrack3" name='backtrack' value="3">
          <label for="backtrack3"> high </label>
          <input type="radio" id="backtrack4" name='backtrack' value="4">
          <label for="backtrack4"> very high </label>
        </fieldset>
+       </div>
 
+       <div class="form-group">
+        <label for"numroutes">Number of Routes (up to 10):</label>
+        <input type="number" name="numroutes" min="1" max="10" value=5>
        </div>
 
        <div>
