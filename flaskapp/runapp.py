@@ -50,7 +50,7 @@ def dev():
 
     return redirect( url_for('model_output',
                  trailroutes=json.dumps(output),
-                 gpx_tracks=json.dumps(gpx_tracks),
+                 #gpx_tracks=json.dumps(gpx_tracks),
                  du = du, eu = eu))
 
 
@@ -143,7 +143,7 @@ def model_input():
         #model_output(results)
         return redirect( url_for('model_output',
                          trailroutes=json.dumps(output),
-                         gpx_tracks=json.dumps(gpx_tracks),
+                         #gpx_tracks=json.dumps(gpx_tracks),
                          du = du, eu = eu))
 
         #request.referrer)
@@ -193,9 +193,10 @@ def model_output():
 
 
     return render_template("model_output.html", trailroutes=trailroutes,
+                                            #    gpx_tracks=json.dumps(gpx_points),
                                                 eu = eu,
-                                                du = du,
-                                                gpx_tracks=json.dumps(gpx_points)) # I'd also tried just gpx_tracks=gpx_points without the json
+                                                du = du)
+                                                 # I'd also tried just gpx_tracks=gpx_points without the json
 
 
 
