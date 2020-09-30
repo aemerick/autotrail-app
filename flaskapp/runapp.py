@@ -17,7 +17,7 @@ _m_in_ft = 0.3048
 @app.route('/dev')
 def dev():
     """
-    development test run
+    Hard-code user-input to make for a faster test run of the output.
     """
 
     string_args = ['units']
@@ -50,46 +50,21 @@ def dev():
 
     return redirect( url_for('model_output',
                  trailroutes=json.dumps(output),
-                 gpx_tacks=json.dumps(gpx_tracks),
+                 gpx_tracks=json.dumps(gpx_tracks),
                  du = du, eu = eu))
 
 
 @app.route('/',  methods=["GET","POST"])
 def homepage():
 
-    if request.method == "POST":
-        longitude = request.form["startng"]
-        latitude = request.form["startlat"]
-
-        print("working in homepage")
-
-
-        return render_template("index.html", error='testing')
-
-    #start_coords = (40.0150, -105.2705)
-    #folium_map = folium.Map(location=start_coords, zoom_start=13, width='80%')
-
-    # Extract the components of the web map
-
-    #
-    #  The HTML to create a <div>  to hold the map
-    #
-    #  The header text to get styles, scripts, etc
-    #
-    #  The scripts needed to run
-
-    # first, force map to render as HTML, for us to dissect
-#    _ = folium_map._repr_html_()
-
-    # get definition of map in body
-#    map_div = Markup(folium_map.get_root().html.render())
-
-    # html to be included in header
-#    hdr_txt = Markup(folium_map.get_root().header.render())
-
-    # html to be included in <script>
-#    script_txt = Markup(folium_map.get_root().script.render())
-
+#    if request.method == "POST":
+#        longitude = request.form["startng"]
+#        latitude = request.form["startlat"]
+#
+#        print("working in homepage")
+#
+#
+#        return render_template("index.html", error='testing')
 
     error = request.args.get('error',None)
     startlat = request.args.get('startlat', '', type=float)
@@ -168,7 +143,7 @@ def model_input():
         #model_output(results)
         return redirect( url_for('model_output',
                          trailroutes=json.dumps(output),
-                         gpx_tacks=json.dumps(gpx_tracks),
+                         gpx_tracks=json.dumps(gpx_tracks),
                          du = du, eu = eu))
 
         #request.referrer)
@@ -176,6 +151,11 @@ def model_input():
 
 @app.route('/api/model_output')
 def model_output():
+    """
+    Prepare and render the results
+
+    AJE: This is what prepares the gpx_tracks
+    """
 
     all_rp = json.loads(request.args.get('trailroutes'))
 
@@ -184,8 +164,9 @@ def model_output():
         gpx_tracks = json.loads(request.args.get('gpx_tracks'))
         gpx_points = []
 
-        for i in enumerate(gpx_tracks):
-            gpx_points.append({'gpx': gpx_tracks[i]})
+        for i, gp in enumerate(gpx_tracks):
+            gpx_points.append({'route': i+1,
+                                'gpx' : gp})
 
 
 
@@ -212,14 +193,18 @@ def model_output():
 
 
     return render_template("model_output.html", trailroutes=trailroutes,
-                                                gpx_tracks=trailroutes,
                                                 eu = eu,
-                                                du = du)
+                                                du = du,
+                                                gpx_tracks=json.dumps(gpx_points)) # I'd also tried just gpx_tracks=gpx_points without the json
+
 
 
 
 @app.route('/mapclick')
 def mapclick():
+  """
+  Map click action button. grab lat / long coordinates of start and end points
+  """
 
   startlng = request.args.get('startlng', '', type=float)
   startlat = request.args.get('startlat', '', type=float)
@@ -235,7 +220,8 @@ def mapclick():
 
 def run_from_input(results, units='english'):
     """
-    move to a compute file
+    This needs to be moved to a compute.py (or something) file. Actually runs
+    the backend from the user input.
     """
     from planit.autotrail.trailmap import TrailMap
     from planit.autotrail  import process_gpx_data as gpx_process
