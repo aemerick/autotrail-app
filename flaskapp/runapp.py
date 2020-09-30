@@ -188,8 +188,8 @@ def model_output():
                        'repeated_percent':'{:4.2f}'.format(rp['repeated_percent']),
                        'max_altitude':eform.format(rp['max_altitude']),
                        'min_altitude':eform.format(rp['min_altitude']),
-                       'min_grade':'{:3.1f}'.format(rp['min_grade']),
-                       'max_grade':'{:3.1f}'.format(rp['max_grade'])})
+                       'min_grade':'{:3.1f}'.format(rp['average_min_grade']),
+                       'max_grade':'{:3.1f}'.format(rp['average_max_grade'])})
 
 
     return render_template("model_output.html", trailroutes=trailroutes,
@@ -226,18 +226,48 @@ def run_from_input(results, units='english'):
     """
     from planit.autotrail.trailmap import TrailMap
     from planit.autotrail  import process_gpx_data as gpx_process
+    from planit.osm_data import osm_process
 
-    outname = '/home/aemerick/code/planit/autotrail/data/boulder_area_trail_processed'
-    tmap = gpx_process.load_graph(outname)
+    # outname = '/home/aemerick/code/planit/autotrail/data/boulder_area_trail_processed'
+    # tmap = gpx_process.load_graph(outname)
+
+    # hard code for now
+    place_name = "Boulder, CO"
+
+    if place_name == 'Boulder, CO':
+        north = 40.100141
+        west  = -105.408908
+        south = 39.841447
+        east  = -105.163064
+    elif place_name == 'Pasadena, CA':
+        north = 34.305256
+        west  = -118.139268
+        south = 34.166495
+        east  = -117.862647
+    elif place_name == 'VT':
+        center = (44.524050, -72.821687)
+
+        north = center[0] + 0.075
+        south = center[0] - 0.075
+        east  = center[1] + 0.075
+        west  = center[1] - 0.075
+
+    ll = (south,west)
+    rr = (north,east)
+
+    tmap = osm_process.osmnx_trailmap(ll=ll,rr=rr)
     tmap.ensure_edge_attributes()
 
     tmap._default_weight_factors = {'distance'         : 1,
-                                'elevation_gain'   : 1,
-                                'elevation_loss'   : 0,      # off
-                                'min_grade'        : 0,           # off
-                                'max_grade'        : 0,           # off
-                                'traversed_count'  : 10,    # very on
-                                'in_another_route' : 2}
+                                    'elevation_gain'   : 0,
+                                    'elevation_loss'   : 0,      # off
+                                    'average_grade'    : 0,
+                                    'average_max_grade' : 0,
+                                    'average_min_grade' : 0,
+                                    'min_grade'        : 0,           # off
+                                    'max_grade'        : 0,           # off
+                                    'traversed_count'  : 5,    # very on
+                                    'in_another_route' : 2}
 
     start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
     start_node = start_node[0]
