@@ -8,7 +8,24 @@
   <meta name="author" content="">
   <link rel="icon" href="../../favicon.ico">
 
-  <title>You can display table data!</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+
+  <!-- java script -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+
+  <!-- Leaflet JS (after the CSS!) -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""></script>
+
+  <title>Plan-It Results!</title>
 
   <!-- Bootstrap core CSS -->
   <link href="../static/css/bootstrap.min.css" rel="stylesheet">
@@ -35,8 +52,47 @@
     </div>
 <br><br>
 
-  <!--here's the input container so you can query after output is served-->
 
+<div class="container">
+  <!--here's the input container so you can query after output is served-->
+  <div id="outmap" style=" position: relative;
+                           top: 0px;
+                           left: 00px;
+                           bottom: 0;
+                           right: 0;
+                           width: 750px;
+                           height: 500px;
+                           overflow: auto;"></div>
+
+  <script type=text/javascript>
+
+       var outmap = L.map('outmap').setView([40.0150, -105.2705], 11);
+
+       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+       }).addTo(outmap);
+
+       // var polylinePoints = [
+     //          [40.0150, -105.2705], [39.9150, -105.3705]
+     //   ];
+
+       // var polyline = L.polyline(polylinePoints).addTo(homemap);
+
+//       var queryDict = {};
+//       location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
+
+//       var gpx_lines = JSON.parse(queryDict['gpx_tracks']);
+
+//       for (var i = 0; i < 1; i++){
+//         var polylinePoints = gpx_lines[i];
+
+//         var polyline = L.polyline(polylinePoints).addTo(outmap);
+//       }
+
+     </script>
+
+
+ </div>
 
    <div class="container">
      <div class="starter-template">
@@ -61,6 +117,8 @@
     </div><!-- /.container -->
 
    <div class="container">
+
+
 <!--
      <div class="starter-template">
        <h3>Another Result:</h3>

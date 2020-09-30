@@ -10,6 +10,50 @@ import json
 from .forms import RouteProperties
 
 
+_m_in_mi = 1609.34
+_m_in_ft = 0.3048
+
+
+@app.route('/dev')
+def dev():
+    """
+    development test run
+    """
+
+    string_args = ['units']
+
+    float_args = ['mindistance',
+                      'maxdistance',
+                      'minelevation',
+                      'maxelevation',
+                      'maxgrade',
+                      'backtrack',
+                      'numroutes','startlat','startlng','endlat','endlng']
+
+    results = {'units' : 'english',
+               'mindistance' : 5.0 * _m_in_mi,
+               'maxdistance' : 8.0 * _m_in_mi,
+               'minelevation' : 1000.0 * _m_in_ft,
+               'maxelevation' : 3000.0 * _m_in_ft,
+               'maxgrade' : 100.0,
+               'mingrade' : 0.0,
+               'backtrack' : 3,
+               'numroutes' : 2,
+               'startlng' :-105.27818,
+               'startlat' :  39.99855,
+               'endlng'   : -105.27818,
+               'endlat'   :  39.99855}
+
+    output, gpx_tracks = run_from_input(results,units =results['units'])
+    du = 'mi'
+    eu = 'ft'
+
+    return redirect( url_for('model_output',
+                 trailroutes=json.dumps(output),
+                 gpx_tacks=json.dumps(gpx_tracks),
+                 du = du, eu = eu))
+
+
 @app.route('/',  methods=["GET","POST"])
 def homepage():
 
@@ -99,19 +143,17 @@ def model_input():
             return redirect(url_for('homepage', error=error)) # messages={'error':error}))
 
         if results['units'] == 'english':
-            m_in_mi = 1609.34
-            m_in_ft = 0.3048
 
             # need to convert to m and km
             for k in ['mindistance','maxdistance']:
                 if results[k] is None:
                     continue
-                results[k] *= m_in_mi
+                results[k] *= _m_in_mi
 
             for k in ['minelevation','maxelevation']:
                 if results[k] is None:
                     continue
-                results[k] *= m_in_ft
+                results[k] *= _m_in_ft
 
             du = 'mi'
             eu = 'ft'
@@ -119,11 +161,15 @@ def model_input():
             du = 'km'
             eu = 'm'
 
-        output = run_from_input(results,units =results['units'])
+        output, gpx_tracks = run_from_input(results,units =results['units'])
+
+        #print(gpx_tracks)
 
         #model_output(results)
         return redirect( url_for('model_output',
-                         trailroutes=json.dumps(output), du = du, eu = eu))
+                         trailroutes=json.dumps(output),
+                         gpx_tacks=json.dumps(gpx_tracks),
+                         du = du, eu = eu))
 
         #request.referrer)
 
@@ -132,6 +178,17 @@ def model_input():
 def model_output():
 
     all_rp = json.loads(request.args.get('trailroutes'))
+
+    gpx_tracks = request.args.get('gpx_tracks')
+    if not (gpx_tracks is None):
+        gpx_tracks = json.loads(request.args.get('gpx_tracks'))
+        gpx_points = []
+
+        for i in enumerate(gpx_tracks):
+            gpx_points.append({'gpx': gpx_tracks[i]})
+
+
+
     du = request.args.get('du')
     eu = request.args.get('eu')
 
@@ -155,6 +212,7 @@ def model_output():
 
 
     return render_template("model_output.html", trailroutes=trailroutes,
+                                                gpx_tracks=trailroutes,
                                                 eu = eu,
                                                 du = du)
 
@@ -179,18 +237,28 @@ def run_from_input(results, units='english'):
     """
     move to a compute file
     """
-    from autotrail.autotrail.autotrail import TrailMap
-    from autotrail.autotrail import process_gpx_data as gpx_process
+    from planit.autotrail.trailmap import TrailMap
+    from planit.autotrail  import process_gpx_data as gpx_process
 
-    outname = '/home/aemerick/code/autotrail/autotrail/data/boulder_area_trail_processed'
-    trailmap = gpx_process.load_graph(outname)
-    trailmap.ensure_edge_attributes()
+    outname = '/home/aemerick/code/planit/autotrail/data/boulder_area_trail_processed'
+    tmap = gpx_process.load_graph(outname)
+    tmap.ensure_edge_attributes()
 
-    start_node = trailmap.nearest_node(results['startlng'], results['startlat'])[1]
+    tmap._default_weight_factors = {'distance'         : 1,
+                                'elevation_gain'   : 1,
+                                'elevation_loss'   : 0,      # off
+                                'min_grade'        : 0,           # off
+                                'max_grade'        : 0,           # off
+                                'traversed_count'  : 10,    # very on
+                                'in_another_route' : 2}
+
+    start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
+    start_node = start_node[0]
     if (results['endlat'] in [None,'']) or (not (type(results['endlat']) in [float,int])):
         end_node = start_node
     else:
-        end_node = trailmap.nearest_node(results['endlng'], results['endlat'])[1]
+        end_node = tmap.nearest_node(results['endlng'], results['endlat'])[1]
+        end_node = end_node[0]
 
     print("CHOSEN NODES: ", start_node, end_node)
 
@@ -204,18 +272,23 @@ def run_from_input(results, units='english'):
 
     target_values = {'distance' : distance}
 
-    start_node = 1041
-    end_node   = 1762
+    print('---', results)
+    print("---", start_node, end_node, target_values)
 
-    _, possible_routes, scores = trailmap.multi_find_route(start_node,
+    _, possible_routes, scores = tmap.multi_find_route(start_node,
                                                                 target_values,
                                                                 n_routes=n_routes,
                                                                 end_node = end_node,
-                                                                reset_used_counter=False)
+                                                                reinitialize=True,
+                                                                reset_used_counter=True)
 
     # get the dictionary of route statistics
-    route_properties = [ trailmap.route_properties(nodes=nodes, verbose=False, units=units) for nodes in possible_routes]
+    route_properties = [ tmap.route_properties(nodes=nodes,
+                                                   verbose=True,
+                                                   units=units) for nodes in possible_routes]
     for i in range(len(scores)):
         route_properties[i]['score'] = scores[i]
 
-    return route_properties
+    gpx_tracks = [tmap.get_route_coords(nodes=nodes, coords_only=True) for nodes in possible_routes]
+
+    return route_properties, gpx_tracks

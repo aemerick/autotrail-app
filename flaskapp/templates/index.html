@@ -77,9 +77,9 @@
 
 <div class="container">
 
-  <div id="homemap" style=" position: fixed;
-                           top: 50px;
-                           left: 650px;
+  <div id="homemap" style=" position: relative;
+                           top: 0px;
+                           left: 0px;
                            bottom: 0;
                            right: 0;
                            width: 750px;
@@ -252,8 +252,10 @@
 -->
 
 
-      <b1>Zoom and scroll on the map above to choose start / end points for your activity</br>
-          Note: Long routes (> 30 mi) may take some time to compute. </b1>
+      <b1>Zoom and scroll on the map above to choose start / end points for your activity.</br>
+          Choose only a start point to plan a round-trip route.</br>
+          Note: Long routes (> 25 mi) and many routes (> 5) may
+          take some time to compute. </b1>
 
 
 
@@ -307,7 +309,7 @@
        <div class="form-group">
          <input id="startlat" name="startlat" type="hidden" value={{startlat}}>
          <input id="startlng" name="startlng" type="hidden" value={{startlng}}>
-         <input id="endlat" name="endlat" type="hidden" value="5.4">
+         <input id="endlat" name="endlat" type="hidden" value={{endlat}}>
          <input id="endlng" name="endlng" type="hidden" value={{endlng}}>
        </div>
 
