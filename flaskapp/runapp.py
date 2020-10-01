@@ -137,8 +137,7 @@ def model_input():
             du = 'km'
             eu = 'm'
 
-        # output, gpx_tracks = run_from_input(results,units =results['units'])
-        output = []
+        output, gpx_tracks = run_from_input(results,units =results['units'])
 
         #print(gpx_tracks)
         #gpx_points = [ { 'lat' : [40.0150,39.9950],
@@ -172,7 +171,7 @@ def model_input():
 
         #GLOBAL_gpx_tracks = gpx_points
 
-        gpx_tracks = { "array" : [40.0150, -105.2705], "array2" : [39.9950, -105.2805] }
+        #gpx_tracks = { "array" : [40.0150, -105.2705], "array2" : [39.9950, -105.2805] }
 
         #model_output(results)
         return redirect( url_for('model_output',

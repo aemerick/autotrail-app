@@ -86,15 +86,17 @@
 
          var gptest = decodeURIComponent('{{gpx_tracks}}');
          var gptest2 = JSON.parse(decodeHtml("{{gpx_tracks}}"));
+
+         console.log('asasdf', gptest2[0]);
+
          //console.log('blah', gptest['array']);
          //console.log('blah2', gptest2['array']);
          //console.log('blah', JSON.parse(gptest2));
          //console.log('blah4', JSON.parse(gptest2)['array']);
 
-         var polylinePoints = [ gptest2['array'], gptest2['array2']];
 
          //var polylinePoints = [[40.0150, -105.2705], [39.9950, -105.2805]];
-         var polyline = L.polyline(polylinePoints).addTo(outmap);
+         var polyline = L.polyline(gptest2[0]).addTo(outmap);
 
          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
