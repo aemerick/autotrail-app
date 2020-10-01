@@ -9,6 +9,9 @@ from flask import jsonify
 import json
 import ast
 
+
+from flask import session
+
 _m_in_mi = 1609.34
 _m_in_ft = 0.3048
 
@@ -53,6 +56,12 @@ def dev():
                  #gpx_tracks=json.dumps(gpx_tracks),
                  du = du, eu = eu))
 
+
+@app.route('/button/display_route', methods=["POST"])
+def button_display_route(val=0):
+
+    array = { "array" : [40.0150, -105.2705], "array2" : [39.9950, -105.2805] }
+    return json.dumps(array)
 
 @app.route('/',  methods=["GET","POST"])
 def homepage():
@@ -312,16 +321,16 @@ def run_from_input(results, units='english'):
     tmap = osm_process.osmnx_trailmap(ll=ll,rr=rr)
     tmap.ensure_edge_attributes()
 
-    tmap._default_weight_factors = {'distance'         : 1,
-                                    'elevation_gain'   : 0,
-                                    'elevation_loss'   : 0,      # off
-                                    'average_grade'    : 0,
+    tmap._default_weight_factors = {'distance'          : 1,
+                                    'elevation_gain'    : 0,
+                                    'elevation_loss'    : 0,      # off
+                                    'average_grade'     : 0,
                                     'average_max_grade' : 0,
                                     'average_min_grade' : 0,
-                                    'min_grade'        : 0,           # off
-                                    'max_grade'        : 0,           # off
-                                    'traversed_count'  : 5,    # very on
-                                    'in_another_route' : 2}
+                                    'min_grade'         : 0,           # off
+                                    'max_grade'         : 0,           # off
+                                    'traversed_count'   : 5,    # very on
+                                    'in_another_route'  : 2}
 
     start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
     start_node = start_node[0]
