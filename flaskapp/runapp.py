@@ -1,16 +1,18 @@
-from flask import render_template
 from flaskapp import app
-# from flaskapp.a_model import ModelIt
-import pandas as pd
-from flask import request, redirect, url_for
-import folium
-from flask import Flask, Markup
-from flask import jsonify
+from flask import request, redirect, url_for, jsonify, render_template, session, send_file
+from flask import Flask, Markup, Response
+from flask_session import Session
+
 import json
 import ast
+import uuid
+import os
+import numpy as np
 
 
-from flask import session
+SESSION_TYPE = 'filesystem'
+app.config.from_object(__name__)
+Session(app)
 
 _m_in_mi = 1609.34
 _m_in_ft = 0.3048
@@ -60,8 +62,39 @@ def dev():
 @app.route('/button/display_route', methods=["POST"])
 def button_display_route(val=0):
 
-    array = { "array" : [40.0150, -105.2705], "array2" : [39.9950, -105.2805] }
-    return json.dumps(array)
+    if request.method == 'POST':
+        val = json.loads(request.data)['val']
+
+        print('BUTTON DISPLAY:',val-1)
+        array = session['gpx_tracks'][val-1]
+
+        print(json.dumps(array))
+
+        return json.dumps(array)
+
+
+@app.route('/button/dowload_gpx', methods=['GET'])
+def button_download_gpx():
+
+    if request.method == 'GET':
+
+        val = int(request.args.get('val','')) - 1
+
+        print("Downloading : ",val)
+
+        if not ('possible_routes' in session.keys()):
+            raise RuntimeError
+
+
+        outname = os.getcwd() + "/outputs/route_" + str(uuid.uuid4()) + ".xml"
+        session['tmap'].write_gpx_file(outname, nodes = session['possible_routes'][val])
+
+        filename = "PlanIt_route_" + str(val) + ".xml"
+
+        return send_file(outname,
+                         mimetype='text/xml',
+                         attachment_filename = filename)
+
 
 @app.route('/',  methods=["GET","POST"])
 def homepage():
@@ -92,7 +125,6 @@ def homepage():
 def model_input():
 
     if request.method == 'POST':
-
         print('model_input request.form = ',request.form)
 
         string_args = ['units']
@@ -148,16 +180,8 @@ def model_input():
 
         output, gpx_tracks = run_from_input(results,units =results['units'])
 
-        #print(gpx_tracks)
-        #gpx_points = [ { 'lat' : [40.0150,39.9950],
-        #                  'lng' : [-105.2705,-105.2805]}]
-
 
         trailroutes = []
-        #
-        # for just one for now
-        #
-
         dform = '{:5.1f}'
         eform = '{:6.1f}'
         for i, rp in enumerate(output):
@@ -175,25 +199,18 @@ def model_input():
         print("trailroutes in model_input:", trailroutes)
 
 
-        #with open('route_tracks.json', 'w') as outfile:
-        #    json.dump(gpx_tracks, outfile)
+        session['trailroutes'] = trailroutes
 
-        #GLOBAL_gpx_tracks = gpx_points
-
-        #gpx_tracks = { "array" : [40.0150, -105.2705], "array2" : [39.9950, -105.2805] }
-
-        #model_output(results)
         return redirect( url_for('model_output',
                          trailroutes= json.dumps(trailroutes), # json.dumps(output),
                          gpx_tracks = json.dumps(gpx_tracks),
                          #gpx_tracks=json.dumps(gpx_tracks),
                          du = du, eu = eu))
 
-        #request.referrer)
 
 
-@app.route('/model_output/<trailroutes>/<gpx_tracks>/<du>/<eu>', methods=['GET','POST'])
-def model_output(trailroutes, gpx_tracks, du, eu):
+@app.route('/model_output/<trailroutes>/<du>/<eu>', methods=['GET','POST'])
+def model_output(trailroutes, du, eu):
     """
     Prepare and render the results
 
@@ -236,16 +253,10 @@ def model_output(trailroutes, gpx_tracks, du, eu):
     #                   'min_altitude':eform.format(rp['min_altitude']),
     #                   'min_grade':'{:3.1f}'.format(rp['average_min_grade']),
     #                   'max_grade':'{:3.1f}'.format(rp['average_max_grade'])})
-    print("model_output: ", request.method)
-    print("model_output: trailroutes: ", trailroutes, type(trailroutes))
-    print("mo: gpx: ", gpx_tracks)
-    print("mo: eu du",eu,du)
-
-    print(gpx_tracks)
 
     if request.method == 'GET':
         return render_template("model_output.html", trailroutes=ast.literal_eval(trailroutes),
-                                                    gpx_tracks=json.dumps(ast.literal_eval(gpx_tracks)),
+                                                #    gpx_tracks=json.dumps(ast.literal_eval(gpx_tracks)),
                                                     du=du,eu=eu)
                                                 #gpx_tracks='bullshit', #json.dumps(gpx_points),
                                                 #eu = 'why',
@@ -275,6 +286,9 @@ def mapclick():
 
   endlng = request.args.get('endlng','',type=float)
   endlat = request.args.get('endlat','',type=float)
+
+  for k in ['startlng','startlat','endlng','endlat']:
+      session[k] = request.args.get(k,'',type=float)
 
   return redirect(url_for('homepage', startlat=startlat, startlng=startlng,
                                       endlat=endlat, endlng=endlng))
@@ -318,7 +332,18 @@ def run_from_input(results, units='english'):
     ll = (south,west)
     rr = (north,east)
 
-    tmap = osm_process.osmnx_trailmap(ll=ll,rr=rr)
+    tmap = None
+    if 'll' in session.keys() and 'rr' in session.keys():
+        if ll == session['ll'] and rr == session['rr'] and 'tmap' in session.keys():
+            tmap = session['tmap']
+
+    if tmap is None:
+        session['ll'] = ll
+        session['rr'] = rr
+        tmap = osm_process.osmnx_trailmap(ll=ll,rr=rr)
+
+        session['tmap'] = tmap
+
     tmap.ensure_edge_attributes()
 
     tmap._default_weight_factors = {'distance'          : 1,
@@ -332,13 +357,23 @@ def run_from_input(results, units='english'):
                                     'traversed_count'   : 5,    # very on
                                     'in_another_route'  : 2}
 
-    start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
-    start_node = start_node[0]
-    if (results['endlat'] in [None,'']) or (not (type(results['endlat']) in [float,int])):
-        end_node = start_node
+    if 'start_node' in session.keys():
+        start_node = session['start_node']
     else:
-        end_node = tmap.nearest_node(results['endlng'], results['endlat'])[1]
-        end_node = end_node[0]
+        start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
+        start_node = start_node[0]
+        session['start_node'] = start_node
+
+    if 'end_node' in session.keys():
+        end_node = session['end_node']
+    else:
+        if (results['endlat'] in [None,'']) or (not (type(results['endlat']) in [float,int])):
+            end_node = start_node
+        else:
+            end_node = tmap.nearest_node(results['endlng'], results['endlat'])[1]
+            end_node = end_node[0]
+
+        session['end_node'] = end_node
 
     print("CHOSEN NODES: ", start_node, end_node)
 
@@ -370,5 +405,11 @@ def run_from_input(results, units='english'):
         route_properties[i]['score'] = scores[i]
 
     gpx_tracks = [tmap.get_route_coords(nodes=nodes, coords_only=True) for nodes in possible_routes]
+
+    session['possible_routes']  = possible_routes
+    session['route_properties'] = route_properties
+    session['gpx_tracks']       = gpx_tracks
+    session['tmap']             = tmap
+
 
     return route_properties, gpx_tracks
