@@ -25,6 +25,9 @@
       integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
       crossorigin=""></script>
 
+  <script type='text/text/javascript' src="lmap.js"></script>
+
+
   <title>Plan-It Results!</title>
 
   <!-- Bootstrap core CSS -->
@@ -64,37 +67,74 @@
                            height: 500px;
                            overflow: auto;"></div>
 
-  <script type=text/javascript>
+    <script>
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
 
-       var outmap = L.map('outmap').setView([40.0150, -105.2705], 11);
+    function leafletMap(eu) {
 
-       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-       }).addTo(outmap);
+         var outmap = L.map('outmap').setView([40.0150, -105.2705], 11);
 
-        // Test a polyline to sanity check
-        var polylinePoints = [[40.0150, -105.2705], [39.9950, -105.2805]];
-        var polyline = L.polyline(polylinePoints).addTo(outmap);
 
-//   AJE:  This is the section that I don't really know whats going on
-       var queryDict = {};
-       location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
+         console.log('final-test: ', eu);
+        // console.log('one', gpx_tracks);
+         //console.log('one', {gpx_tracks});
+         console.log('one', "{{gpx_tracks}}");
 
-//       var gpx_lines = queryDict['gpx_tracks'];
-//     gpx_lines *should* be :
-//     gpx_lines = {  'route' : [], integer list of route index,
-//                    'gpx'   : [ [(lat,long,elev)...],  [(lat,long,elev)] ] }
-//
-//           so 'gpx' contains an array containing arrays of (lat,long,elev) coordinates:
-//
-//       var gpx_lines = JSON.parse(queryDict['gpx_tracks']);  // tried with JSON and without... both don't work
+         var gptest = decodeURIComponent('{{gpx_tracks}}');
+         var gptest2 = JSON.parse(decodeHtml("{{gpx_tracks}}"));
+         //console.log('blah', gptest['array']);
+         //console.log('blah2', gptest2['array']);
+         //console.log('blah', JSON.parse(gptest2));
+         //console.log('blah4', JSON.parse(gptest2)['array']);
 
-  //     for (var i = 0; i < gpx_lines.length; i++){
-         //var trailPoints = gpx_lines[i]['gpx'];
-    //     var polyline = L.polyline(gpx_lines[i]['gpx']).addTo(outmap);
-      // }
+         var polylinePoints = [ gptest2['array'], gptest2['array2']];
 
-     </script>
+         //var polylinePoints = [[40.0150, -105.2705], [39.9950, -105.2805]];
+         var polyline = L.polyline(polylinePoints).addTo(outmap);
+
+         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+         }).addTo(outmap);
+
+          // Test a polyline to sanity check
+          //var polylinePoints = [[40.0150, -105.2705], [39.9950, -105.2805]];
+          //var polyline = L.polyline(polylinePoints).addTo(outmap);
+         console.log('doc :', document);
+         console.log("form:", $('form').serializeArray());
+    //   AJE:  This is the section that I don't really know whats going on
+         var queryDict = {};
+         location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
+
+         var gpx_lines = queryDict['gpx_tracks'];
+         var test = queryDict['eu'];
+         var test2 = queryDict['test'];
+         console.log('test:', test);
+         console.log('test2 :', test2);
+         console.log("GPX: ", gpx_lines);
+
+        // console.log('----', JSON.parse(decodeURIComponent(gpx_lines)));
+
+    //     gpx_lines *should* be :
+    //     gpx_lines = {  'route' : [], integer list of route index,
+    //                    'gpx'   : [ [(lat,long,elev)...],  [(lat,long,elev)] ] }
+    //
+    //           so 'gpx' contains an array containing arrays of (lat,long,elev) coordinates:
+    //
+    //       var gpx_lines = JSON.parse(queryDict['gpx_tracks']);  // tried with JSON and without... both don't work
+
+    //     for (var i = 0; i < gpx_lines.length; i++){
+           //var trailPoints = gpx_lines[i]['gpx'];
+      //     var polyline = L.polyline(gpx_lines[i]['gpx']).addTo(outmap);
+        // }
+
+    }
+
+    leafletMap("{{eu}}");
+    </script>
 
 
  </div>

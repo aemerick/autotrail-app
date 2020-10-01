@@ -5,14 +5,14 @@ import pandas as pd
 from flask import request, redirect, url_for
 import folium
 from flask import Flask, Markup
-
+from flask import jsonify
 import json
-from .forms import RouteProperties
-
+import ast
 
 _m_in_mi = 1609.34
 _m_in_ft = 0.3048
 
+#from autotrail_app.run import GLOBAL_gpx_tracks
 
 @app.route('/dev')
 def dev():
@@ -66,11 +66,11 @@ def homepage():
 #
 #        return render_template("index.html", error='testing')
 
-    error = request.args.get('error',None)
+    error    = request.args.get('error',None)
     startlat = request.args.get('startlat', '', type=float)
     startlng = request.args.get('startlng', '', type=float)
-    endlat = request.args.get('endlat', '', type=float)
-    endlng = request.args.get('endlng', '', type=float)
+    endlat   = request.args.get('endlat', '', type=float)
+    endlng   = request.args.get('endlng', '', type=float)
 
     return render_template("index.html", error=error,startlat=startlat,
                                          startlng=startlng,
@@ -79,11 +79,12 @@ def homepage():
 #                                         script_txt=script_txt,
 #                                         error=error)
 
-@app.route('/api/model_input', methods=['GET'])
+@app.route('/model_input', methods=['POST'])
 def model_input():
 
-    if request.method == 'GET':
-        print('========',request.args)
+    if request.method == 'POST':
+
+        print('model_input request.form = ',request.form)
 
         string_args = ['units']
         float_args = ['mindistance',
@@ -97,14 +98,14 @@ def model_input():
         results = {}
 
         for k in float_args:
-            results[k] = request.args.get(k, '')
+            results[k] = request.form.get(k, '')
             if results[k] == '':
                 results[k] = None
             else:
                 results[k] = float(results[k])
 
         for k in string_args:
-            results[k] = request.args.get(k, '')
+            results[k] = request.form.get(k, '')
 
         error = None
         if (results['mindistance'] is None) and (results['maxdistance'] is None):
@@ -136,70 +137,124 @@ def model_input():
             du = 'km'
             eu = 'm'
 
-        output, gpx_tracks = run_from_input(results,units =results['units'])
+        # output, gpx_tracks = run_from_input(results,units =results['units'])
+        output = []
 
         #print(gpx_tracks)
+        #gpx_points = [ { 'lat' : [40.0150,39.9950],
+        #                  'lng' : [-105.2705,-105.2805]}]
+
+
+        trailroutes = []
+        #
+        # for just one for now
+        #
+
+        dform = '{:5.1f}'
+        eform = '{:6.1f}'
+        for i, rp in enumerate(output):
+            trailroutes.append({'route':i+1,
+                           'distance':dform.format(rp['distance']),
+                           'elevation_gain':eform.format(rp['elevation_gain']),
+                           'elevation_loss':eform.format(rp['elevation_loss']),
+                           'repeated_percent':'{:4.2f}'.format(rp['repeated_percent']),
+                           'max_altitude':eform.format(rp['max_altitude']),
+                           'min_altitude':eform.format(rp['min_altitude']),
+                           'min_grade':'{:3.1f}'.format(rp['average_min_grade']),
+                           'max_grade':'{:3.1f}'.format(rp['average_max_grade'])})
+
+        print("output in model_input:", output)
+        print("trailroutes in model_input:", trailroutes)
+
+
+        #with open('route_tracks.json', 'w') as outfile:
+        #    json.dump(gpx_tracks, outfile)
+
+        #GLOBAL_gpx_tracks = gpx_points
+
+        gpx_tracks = { "array" : [40.0150, -105.2705], "array2" : [39.9950, -105.2805] }
 
         #model_output(results)
         return redirect( url_for('model_output',
-                         trailroutes=json.dumps(output),
+                         trailroutes= json.dumps(trailroutes), # json.dumps(output),
+                         gpx_tracks = json.dumps(gpx_tracks),
                          #gpx_tracks=json.dumps(gpx_tracks),
                          du = du, eu = eu))
 
         #request.referrer)
 
 
-@app.route('/api/model_output')
-def model_output():
+@app.route('/model_output/<trailroutes>/<gpx_tracks>/<du>/<eu>', methods=['GET','POST'])
+def model_output(trailroutes, gpx_tracks, du, eu):
     """
     Prepare and render the results
 
     AJE: This is what prepares the gpx_tracks
     """
-
-    all_rp = json.loads(request.args.get('trailroutes'))
-
-    gpx_tracks = request.args.get('gpx_tracks')
-    if not (gpx_tracks is None):
-        gpx_tracks = json.loads(request.args.get('gpx_tracks'))
-        gpx_points = []
-
-        for i, gp in enumerate(gpx_tracks):
-            gpx_points.append({'route': i+1,
-                                'gpx' : gp})
+    #gpx_tracks = ''
 
 
+    #all_rp = json.loads(request.args.get('trailroutes'))
+    #gpx_tracks = request.args.get('gpx_tracks')
+    #if not (gpx_tracks is None):
+    #    try:
+    #        gpx_tracks = json.loads(request.args.get('gpx_tracks'))
+    #        gpx_points = []
+    #
+    #        for i, gp in enumerate(gpx_tracks):
+    #            gpx_points.append({'route': i+1,
+    #                                'gpx' : gp})
+    #    except:
+    #        pass
 
-    du = request.args.get('du')
-    eu = request.args.get('eu')
 
-    trailroutes = []
+    #du = request.args.get('du')
+    #eu = request.args.get('eu')
+
+    #trailroutes = []
     #
     # for just one for now
     #
 
-    dform = '{:5.1f}'
-    eform = '{:6.1f}'
-    for i, rp in enumerate(all_rp):
-        trailroutes.append({'route':i+1,
-                       'distance':dform.format(rp['distance']),
-                       'elevation_gain':eform.format(rp['elevation_gain']),
-                       'elevation_loss':eform.format(rp['elevation_loss']),
-                       'repeated_percent':'{:4.2f}'.format(rp['repeated_percent']),
-                       'max_altitude':eform.format(rp['max_altitude']),
-                       'min_altitude':eform.format(rp['min_altitude']),
-                       'min_grade':'{:3.1f}'.format(rp['average_min_grade']),
-                       'max_grade':'{:3.1f}'.format(rp['average_max_grade'])})
+    #dform = '{:5.1f}'
+    #eform = '{:6.1f}'
+    #for i, rp in enumerate(all_rp):
+    #    trailroutes.append({'route':i+1,
+    #                   'distance':dform.format(rp['distance']),
+    #                   'elevation_gain':eform.format(rp['elevation_gain']),
+    #                   'elevation_loss':eform.format(rp['elevation_loss']),
+    #                   'repeated_percent':'{:4.2f}'.format(rp['repeated_percent']),
+    #                   'max_altitude':eform.format(rp['max_altitude']),
+    #                   'min_altitude':eform.format(rp['min_altitude']),
+    #                   'min_grade':'{:3.1f}'.format(rp['average_min_grade']),
+    #                   'max_grade':'{:3.1f}'.format(rp['average_max_grade'])})
+    print("model_output: ", request.method)
+    print("model_output: trailroutes: ", trailroutes, type(trailroutes))
+    print("mo: gpx: ", gpx_tracks)
+    print("mo: eu du",eu,du)
 
+    print(gpx_tracks)
 
-    return render_template("model_output.html", trailroutes=trailroutes,
-                                            #    gpx_tracks=json.dumps(gpx_points),
-                                                eu = eu,
-                                                du = du)
+    if request.method == 'GET':
+        return render_template("model_output.html", trailroutes=ast.literal_eval(trailroutes),
+                                                    gpx_tracks=json.dumps(ast.literal_eval(gpx_tracks)),
+                                                    du=du,eu=eu)
+                                                #gpx_tracks='bullshit', #json.dumps(gpx_points),
+                                                #eu = 'why',
+                                                #du = du,
+                                                #test='test')
                                                  # I'd also tried just gpx_tracks=gpx_points without the json
 
 
-
+#@app.route('/api/get_coords', methods=['GET'])
+#def get_coords():
+#    print('stupid',request.method)
+#    print('help',request.args)
+#    print(request.args.get('trailnum'))
+#
+#    track = GLOBAL_gpx_tracks[request.args.get('trailnum')]
+#    print('---',track)
+#    return jsonify(track)
 
 @app.route('/mapclick')
 def mapclick():
