@@ -36,7 +36,7 @@ _m_in_ft = 0.3048
 
 _all_session_vars = ['mapclat','mapclng','startlat','startlng','endlat','endlng',
                      'tmap','rr','ll','lname','possible_routes','route_properties',
-                     'gpx_tracks']
+                     'gpx_tracks','start_node','end_node','trailroutes']
 
 
 @app.route('/dev')
@@ -74,22 +74,27 @@ def dev():
     eu = 'ft'
 
     return redirect( url_for('model_output',
+                 startlat=results['startlat'],startlng=results['startlng'],
                  trailroutes=json.dumps(output),
                  du = du, eu = eu))
 
 
-@app.route('/button/reset_session')
+@app.route('/button/reset_session', methods=['GET'])
 def button_reset_session():
     """
     Probably NOT the best way to do this, but reset and clear
     all prior session data. Hard reset.
     """
 
-    for k in _all_session_vars:
-        if k in session.keys():
-            session[k] = None
+    if request.method == 'GET':
+        for k in _all_session_vars:
+            if k in session.keys():
+                session[k] = None
 
-    return  redirect(url_for("homepage"))
+        print('reset: ', session)
+
+
+        return  redirect(url_for("homepage"))
 
 
 @app.route('/button/display_route', methods=["POST"])
@@ -125,9 +130,11 @@ def geocode():
         session['mapclat']=lat
         session['mapclng']=lng
 
+        print("GEOCODING")
         generate_map(lat,lng)
+        print("DONE GEOCODING")
 
-    return redirect(url_for('homepage', mapclat=lat, mapclng=lng))
+        return redirect(url_for('homepage', mapclat=lat, mapclng=lng))
 
 @app.route('/button/dowload_gpx', methods=['GET'])
 def button_download_gpx():
@@ -264,6 +271,7 @@ def model_input():
         session['trailroutes'] = trailroutes
 
         return redirect( url_for('model_output',
+                         startlat=session['startlat'],startlng=session['startlng'],
                          trailroutes= json.dumps(trailroutes), # json.dumps(output),
                          gpx_tracks = json.dumps(gpx_tracks),
                          #gpx_tracks=json.dumps(gpx_tracks),
@@ -271,17 +279,17 @@ def model_input():
 
 
 
-@app.route('/model_output/<trailroutes>/<du>/<eu>', methods=['GET','POST'])
-def model_output(trailroutes, du, eu):
+@app.route('/model_output/<startlat>/<startlng>/<trailroutes>/<du>/<eu>', methods=['GET','POST'])
+def model_output(startlat, startlng,trailroutes, du, eu):
     """
     Prepare and render the results
-
-    AJE: This is what prepares the gpx_tracks
     """
 
     if request.method == 'GET':
-        return render_template("model_output.html", trailroutes=ast.literal_eval(trailroutes),
-                                                    du=du,eu=eu)
+        return render_template("model_output.html", startlat=startlat,startlng=startlng,
+                                                    trailroutes=ast.literal_eval(trailroutes),
+                                                    du=du,
+                                                    eu=eu)
 
 
 @app.route('/mapclick')
@@ -394,7 +402,7 @@ def run_from_input(results, units='english'):
     else:
         tmap = session['tmap']
 
-    if 'start_node' in session.keys():
+    if not (session.get('start_node',None) is None):
         start_node = session['start_node']
     else:
         start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
@@ -403,7 +411,7 @@ def run_from_input(results, units='english'):
         session['startlng'] = results['startlng']
         session['startlat'] = results['startlat']
 
-    if 'end_node' in session.keys():
+    if not (session.get('end_node',None) is None):
         end_node = session['end_node']
     else:
         if (results['endlat'] in [None,'']) or (not (type(results['endlat']) in [float,int])):

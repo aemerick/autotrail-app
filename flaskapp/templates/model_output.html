@@ -76,8 +76,22 @@
       }
 
     //function leafletMap(eu) {
+        var queryDict = {};
+        location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
 
-         var outmap = L.map('outmap').setView([40.0150, -105.2705], 13);
+        var clat = 37.0902;
+        var clng = -95.7129;
+        var zoomlvl = 5;
+
+        if ('mapclat' in queryDict){
+          clat =         queryDict['startlat'];
+        }
+        if ('mapclng' in queryDict){
+          clng =         queryDict['startlng'];
+          zoomlvl = 13;
+        }
+
+         var outmap = L.map('outmap').setView([{{startlat}},{{startlng}}], 12);
 
          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
