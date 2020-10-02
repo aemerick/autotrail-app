@@ -41,8 +41,13 @@ def cache_maps(locations = ['Boulder, CO'], radius = 40233.6):
 
 if __name__ == "__main__":
 
-    locations = ['Boulder, CO', "Altadena, California",
+    locations = ['Boulder, CO',
+                 "Mount Wilson California",
                  "Bear Mountain State Park, New York",
-                 "Mount Washington, New Hampshire"]
+                 "Mount Washington, New Hampshire",
+                 "Issaquah Washington",
+                 "Boise Idaho",
+                 "Yosemite National Park",
+                 "Tegernsee Germany"]
 
     cache_maps(locations)
