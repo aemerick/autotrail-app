@@ -90,15 +90,30 @@
 
    <script type=text/javascript>
 
-        var homemap = L.map('homemap').setView([40.0150, -105.2705], 13);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(homemap);
 
 
         var queryDict = {};
         location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
+
+        var clat = 37.0902;
+        var clng = -95.7129;
+        var zoomlvl = 4;
+
+        if ('mapclat' in queryDict){
+          clat =         queryDict['mapclat'];
+        }
+        if ('mapclng' in queryDict){
+          clng =         queryDict['mapclng'];
+          zoomlvl = 13;
+        }
+
+
+
+        var homemap = L.map('homemap').setView([clat,clng], zoomlvl);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(homemap);
 
         var jstartlat='', jstartlng='', jendlat='', jendlng='';
         if ('startlat' in queryDict){
@@ -169,19 +184,9 @@
                 var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
                   .bindPopup('End Point <a href="{{ url_for('mapclick') }}?startlat='+jstartlat+'&startlng='+jstartlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
              });
-          //   L.marker([40.0150, -105.2705]).addTo(homemap)
-            //       .bindPopup('Boulder, CO.')
-              //     .openPopup();
-
-
           }
 
         }
-
-        //  L.marker([40.0150, -105.2705]).addTo(homemap)
-        //      .bindPopup('Boulder, CO.')
-        //      .openPopup();
-        //}
 
         // Same as above, but for the end point
         if (typeof(jendlat) != 'undefined' && jendlat != null && jendlat != ''){
@@ -210,25 +215,32 @@
               });
           }
        }
-       //else {
-
-        // homemap.on('click',
-          // function(e,endlat,endlng){
-    //       var coord = e.latlng; // no need for toString()
-      //     var lat = coord.lat;
-        //   var lng = coord.lng;
-        //   var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
-        //   .bindPopup('End Point <a href="{{ url_for('mapclick') }}?startlat='+startlat+'&startlng='+startlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
-        // });
-      // }
-
-        // var polylinePoints = [
-      //          [40.0150, -105.2705], [39.9150, -105.3705]
-      //   ];
-
-        // var polyline = L.polyline(polylinePoints).addTo(homemap);
 
 
+       function displayTrails()
+       {
+         $.ajax(
+         {
+           type : 'POST',
+           url : "/button/display_trails",
+           contentType: "application/json;charset=UTF-8",
+           dataType:'json',
+           data    : JSON.stringify( { "val" : 0 } ),
+           success : function(data)
+           {
+             if (data !=null)
+             {
+               const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525']
+               var points = data;
+               for (var i = 0; i < points.length; i++){
+                   var polyline = L.polyline(points[i]);
+                   polyline.setStyle( {'color' : "#000000" });
+                   polyline.addTo(homemap);
+               }
+             }
+           }/*success : function() {}*/
+         });/*$.ajax*/
+       }
 
    </script>
 
@@ -250,13 +262,33 @@
        <img src="static/images/test_map2.png" alt="Image" style="width:500px;height:500px;">
      </div>
 -->
+{% if not mapclat %}
+
+      <form action="/button/geocode">
+        <label for="fname">Enter Location to Load Trails:</label>
+        <input type="text" id="lname" name="lname"><br><br>
+        <b1> <strong> Note: </strong> Choosing location downloads OSM data (server-side) and may take some time.</br>
+             This uses OSM's geotag search, which may NOT give as reliable results as expected (e.g. Google maps). </br>
+             The following locations are pre-cached (within 25 miles):</br>
+             1) "Boulder, CO" 2)"Altadena California" 3) "Bear Mountain State Park, New York" </br>
+             4) "Mount Washington, New Hampshire"
+        </b1></br></br>
+        <input type="submit" class="btn btn-primary btn-lg" value="Make Map">
+      </form>
+
+
+
+{% endif %}
+
+      {% if mapclat %}
+
+      <button id="displayTrails" class="btn btn-xs btn-default" onclick="displayTrails()">Plot Known Trails</button>
 
 
       <b1>Zoom and scroll on the map above to choose start / end points for your activity.</br>
           Choose only a start point to plan a round-trip route.</br>
           Note: Long routes (> 25 mi) and many routes (> 5) may
           take some time to compute. </b1>
-
 
 
      <form action="/model_input" method="POST">
@@ -273,7 +305,7 @@
        <div class="form-group">
          <label for="distance">Distance Range (mi):</label>
          <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0">
-         <input type="hidden" name="mindistance" value="-1.0"/>
+         <!-- <input type="hidden" name="mindistance" value="-1.0"/>-->
          <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0 ">
        </div>
 
@@ -320,11 +352,21 @@
 
      </form>
 
+
+  </br>
      <form action="/" method="GET">
        <div>
-         <button type="submit"  class="btn btn-default btn-lg">Reset Map and Parameters</button>
+         <button type="submit"  class="btn btn-default btn-lg">Reset Current Map and Parameters</button>
        </div>
     </form>
+
+    </br>
+    <form action="/button/reset_session" method="GET">
+      <div>
+        <button type="submit"  class="btn btn-warning btn-lg">Choose a New Location</button>
+      </div>
+   </form>
+   {% endif %} <!-- end mapclat and maplng -->
 
    </div>
 

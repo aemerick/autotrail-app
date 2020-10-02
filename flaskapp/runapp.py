@@ -1,3 +1,17 @@
+"""
+
+    Author  : Andrew Emerick
+    e-mail  : aemerick11@gmail.com
+    year    : 2020
+
+    Front-end for auto-generated hiking and trail running routes
+    based on known trail data and given user-specified contraints.
+
+    This is still a large work in progress and code needs heavy cleaning.
+    Not the best code I've written. First time building a web app -- (Sep 2020)
+
+"""
+
 from flaskapp import app
 from flask import request, redirect, url_for, jsonify, render_template, session, send_file
 from flask import Flask, Markup, Response
@@ -18,6 +32,12 @@ _m_in_mi = 1609.34
 _m_in_ft = 0.3048
 
 #from autotrail_app.run import GLOBAL_gpx_tracks
+
+
+_all_session_vars = ['mapclat','mapclng','startlat','startlng','endlat','endlng',
+                     'tmap','rr','ll','lname','possible_routes','route_properties',
+                     'gpx_tracks']
+
 
 @app.route('/dev')
 def dev():
@@ -55,8 +75,21 @@ def dev():
 
     return redirect( url_for('model_output',
                  trailroutes=json.dumps(output),
-                 #gpx_tracks=json.dumps(gpx_tracks),
                  du = du, eu = eu))
+
+
+@app.route('/button/reset_session')
+def button_reset_session():
+    """
+    Probably NOT the best way to do this, but reset and clear
+    all prior session data. Hard reset.
+    """
+
+    for k in _all_session_vars:
+        if k in session.keys():
+            session[k] = None
+
+    return  redirect(url_for("homepage"))
 
 
 @app.route('/button/display_route', methods=["POST"])
@@ -64,14 +97,37 @@ def button_display_route(val=0):
 
     if request.method == 'POST':
         val = json.loads(request.data)['val']
-
-        print('BUTTON DISPLAY:',val-1)
         array = session['gpx_tracks'][val-1]
-
-        print(json.dumps(array))
 
         return json.dumps(array)
 
+@app.route('/button/display_trails', methods=["POST"])
+def button_display_trails():
+
+    if request.method == 'POST':
+        print("gathering trail data ")
+        # need to gather ALL gpx tracks into an array
+        array = []
+        for (u,v,d) in session['tmap'].edges(data=True):
+           array.append( [(c[1],c[0]) for c in d['geometry'].coords])
+
+        print("done, ", np.shape(array))
+        return json.dumps(array)
+
+@app.route('/button/geocode', methods=['GET'])
+def geocode():
+
+    if request.method == 'GET':
+        import osmnx.geocoder as geocoder
+        lname = request.args.get('lname','')
+        lat, lng = geocoder.geocode(lname)
+
+        session['mapclat']=lat
+        session['mapclng']=lng
+
+        generate_map(lat,lng)
+
+    return redirect(url_for('homepage', mapclat=lat, mapclng=lng))
 
 @app.route('/button/dowload_gpx', methods=['GET'])
 def button_download_gpx():
@@ -99,27 +155,31 @@ def button_download_gpx():
 @app.route('/',  methods=["GET","POST"])
 def homepage():
 
-#    if request.method == "POST":
-#        longitude = request.form["startng"]
-#        latitude = request.form["startlat"]
-#
-#        print("working in homepage")
-#
-#
-#        return render_template("index.html", error='testing')
+    print('homepage requests: ' ,request.args)
+    print('homepage session: ', session)
+
+    lname    = request.args.get('lname',session.get('lname',''))
+
+    mapclat  = request.args.get('mapclat',session.get('mapclat',''),type=float)
+    mapclng  = request.args.get('mapclng',session.get('mapclng',''),type=float)
 
     error    = request.args.get('error',None)
-    startlat = request.args.get('startlat', '', type=float)
-    startlng = request.args.get('startlng', '', type=float)
-    endlat   = request.args.get('endlat', '', type=float)
-    endlng   = request.args.get('endlng', '', type=float)
+    startlat = request.args.get('startlat', session.get('startlat',''), type=float)
+    startlng = request.args.get('startlng', session.get('startlng',''), type=float)
+    endlat   = request.args.get('endlat', session.get('endlat',''), type=float)
+    endlng   = request.args.get('endlng', session.get('endlng',''), type=float)
+
+    session['mapclat'] = mapclat
+    session['mapclng'] = mapclng
+    session['startlat'] = startlat
+    session['startlng'] = startlng
+    session['endlat'] = endlat
+    session['endlng'] = endlng
 
     return render_template("index.html", error=error,startlat=startlat,
                                          startlng=startlng,
-                                         endlat=endlat, endlng=endlng)
-    #                                     hdr_txt=hdr_txt,
-#                                         script_txt=script_txt,
-#                                         error=error)
+                                         endlat=endlat, endlng=endlng,
+                                         lname=lname, mapclat=mapclat, mapclng=mapclng)
 
 @app.route('/model_input', methods=['POST'])
 def model_input():
@@ -140,9 +200,11 @@ def model_input():
 
         for k in float_args:
             results[k] = request.form.get(k, '')
-            if results[k] == '':
+            print(k,results[k])
+            if (results[k] == '') or (results[k] == None) or (results[k] == 'None'):
                 results[k] = None
             else:
+                print(k,results[k])
                 results[k] = float(results[k])
 
         for k in string_args:
@@ -216,133 +278,94 @@ def model_output(trailroutes, du, eu):
 
     AJE: This is what prepares the gpx_tracks
     """
-    #gpx_tracks = ''
-
-
-    #all_rp = json.loads(request.args.get('trailroutes'))
-    #gpx_tracks = request.args.get('gpx_tracks')
-    #if not (gpx_tracks is None):
-    #    try:
-    #        gpx_tracks = json.loads(request.args.get('gpx_tracks'))
-    #        gpx_points = []
-    #
-    #        for i, gp in enumerate(gpx_tracks):
-    #            gpx_points.append({'route': i+1,
-    #                                'gpx' : gp})
-    #    except:
-    #        pass
-
-
-    #du = request.args.get('du')
-    #eu = request.args.get('eu')
-
-    #trailroutes = []
-    #
-    # for just one for now
-    #
-
-    #dform = '{:5.1f}'
-    #eform = '{:6.1f}'
-    #for i, rp in enumerate(all_rp):
-    #    trailroutes.append({'route':i+1,
-    #                   'distance':dform.format(rp['distance']),
-    #                   'elevation_gain':eform.format(rp['elevation_gain']),
-    #                   'elevation_loss':eform.format(rp['elevation_loss']),
-    #                   'repeated_percent':'{:4.2f}'.format(rp['repeated_percent']),
-    #                   'max_altitude':eform.format(rp['max_altitude']),
-    #                   'min_altitude':eform.format(rp['min_altitude']),
-    #                   'min_grade':'{:3.1f}'.format(rp['average_min_grade']),
-    #                   'max_grade':'{:3.1f}'.format(rp['average_max_grade'])})
 
     if request.method == 'GET':
         return render_template("model_output.html", trailroutes=ast.literal_eval(trailroutes),
-                                                #    gpx_tracks=json.dumps(ast.literal_eval(gpx_tracks)),
                                                     du=du,eu=eu)
-                                                #gpx_tracks='bullshit', #json.dumps(gpx_points),
-                                                #eu = 'why',
-                                                #du = du,
-                                                #test='test')
-                                                 # I'd also tried just gpx_tracks=gpx_points without the json
 
-
-#@app.route('/api/get_coords', methods=['GET'])
-#def get_coords():
-#    print('stupid',request.method)
-#    print('help',request.args)
-#    print(request.args.get('trailnum'))
-#
-#    track = GLOBAL_gpx_tracks[request.args.get('trailnum')]
-#    print('---',track)
-#    return jsonify(track)
 
 @app.route('/mapclick')
 def mapclick():
-  """
-  Map click action button. grab lat / long coordinates of start and end points
-  """
+    """
+    Map click action button. grab lat / long coordinates of start and end points
+    """
 
-  startlng = request.args.get('startlng', '', type=float)
-  startlat = request.args.get('startlat', '', type=float)
+    lname    = request.args.get('lname',session.get('lname',''))
 
-  endlng = request.args.get('endlng','',type=float)
-  endlat = request.args.get('endlat','',type=float)
+    mapclat  = request.args.get('mapclat',session.get('mapclat',''),type=float)
+    mapclng  = request.args.get('mapclng',session.get('mapclng',''),type=float)
 
-  for k in ['startlng','startlat','endlng','endlat']:
-      session[k] = request.args.get(k,'',type=float)
+    startlat = request.args.get('startlat', session.get('startlat',''), type=float)
+    startlng = request.args.get('startlng', session.get('startlng',''), type=float)
+    endlat   = request.args.get('endlat', session.get('endlat',''), type=float)
+    endlng   = request.args.get('endlng', session.get('endlng',''), type=float)
 
-  return redirect(url_for('homepage', startlat=startlat, startlng=startlng,
-                                      endlat=endlat, endlng=endlng))
+    for k in ['startlng','startlat','endlng','endlat']:
+        session[k] = request.args.get(k,'',type=float)
+
+        return redirect(url_for('homepage', startlat=startlat,
+                                            startlng=startlng,
+                                            endlat=endlat, endlng=endlng,
+                                            lname=lname, mapclat=mapclat, mapclng=mapclng))
   #return render_template("form.html", longitude=longitude, latitude=latitude)
 
 
 
-def run_from_input(results, units='english'):
+def generate_map(mapclat, mapclng,
+                 radius = 40233.6): # 50 miles (in m)
     """
-    This needs to be moved to a compute.py (or something) file. Actually runs
-    the backend from the user input.
+    Download and set up map from osmnx. If the trail map object or the OSM
+    object associated with the bounding box exists on file already, loads
+    this instead.
     """
-    from planit.autotrail.trailmap import TrailMap
-    from planit.autotrail  import process_gpx_data as gpx_process
+
     from planit.osm_data import osm_process
 
     # outname = '/home/aemerick/code/planit/autotrail/data/boulder_area_trail_processed'
     # tmap = gpx_process.load_graph(outname)
 
     # hard code for now
-    place_name = "Boulder, CO"
+#    place_name = "Boulder, CO"
+#
+#    if place_name == 'Boulder, CO':
+#        north = 40.100141
+#        west  = -105.408908
+#        south = 39.841447
+#        east  = -105.163064
+#    elif place_name == 'Pasadena, CA':
+#        north = 34.305256
+#        west  = -118.139268
+#        south = 34.166495
+#        east  = -117.862647
+#    elif place_name == 'VT':
+#        center = (44.524050, -72.821687)
+    #    north = center[0] + 0.075
+    #    south = center[0] - 0.075
+    #    east  = center[1] + 0.075
+    #    west  = center[1] - 0.075
+    #
+    #ll = (south,west)
+    #rr = (north,east)
 
-    if place_name == 'Boulder, CO':
-        north = 40.100141
-        west  = -105.408908
-        south = 39.841447
-        east  = -105.163064
-    elif place_name == 'Pasadena, CA':
-        north = 34.305256
-        west  = -118.139268
-        south = 34.166495
-        east  = -117.862647
-    elif place_name == 'VT':
-        center = (44.524050, -72.821687)
-
-        north = center[0] + 0.075
-        south = center[0] - 0.075
-        east  = center[1] + 0.075
-        west  = center[1] - 0.075
-
-    ll = (south,west)
-    rr = (north,east)
 
     tmap = None
-    if 'll' in session.keys() and 'rr' in session.keys():
-        if ll == session['ll'] and rr == session['rr'] and 'tmap' in session.keys():
-            tmap = session['tmap']
+#    if 'll' in session.keys() and 'rr' in session.keys():
+#        if ll == session['ll'] and rr == session['rr'] and 'tmap' in session.keys():
+#            if ll == session['tmap'].ll and rr == session['tmap'].rr:
+#                tmap = session['tmap']
+#                print("map already found with ", tmap.ll, tmap.rr)
 
     if tmap is None:
-        session['ll'] = ll
-        session['rr'] = rr
-        tmap = osm_process.osmnx_trailmap(ll=ll,rr=rr)
+        center_point = (session['mapclat'], session['mapclng'])
+        print("Making map with center: ", center_point)
+        tmap = osm_process.osmnx_trailmap(center_point = center_point,
+                                          dist=radius)
 
         session['tmap'] = tmap
+        session['ll']   = tmap.ll
+        session['rr']   = tmap.rr
+
+        print("map made with: ", tmap.ll, tmap.rr)
 
     tmap.ensure_edge_attributes()
 
@@ -354,8 +377,22 @@ def run_from_input(results, units='english'):
                                     'average_min_grade' : 0,
                                     'min_grade'         : 0,           # off
                                     'max_grade'         : 0,           # off
-                                    'traversed_count'   : 5,    # very on
+                                    'traversed_count'   : 100,    # very on
                                     'in_another_route'  : 2}
+
+    return
+
+def run_from_input(results, units='english'):
+    """
+    This needs to be moved to a compute.py (or something) file. Actually runs
+    the backend from the user input.
+    """
+
+    if not ('tmap' in session.keys()):
+        print("TMAP NOT FOUND - RUNNING FROM INPUT FAILING")
+        raise RuntimeError
+    else:
+        tmap = session['tmap']
 
     if 'start_node' in session.keys():
         start_node = session['start_node']
@@ -363,6 +400,8 @@ def run_from_input(results, units='english'):
         start_node = tmap.nearest_node(results['startlng'], results['startlat'])[1]
         start_node = start_node[0]
         session['start_node'] = start_node
+        session['startlng'] = results['startlng']
+        session['startlat'] = results['startlat']
 
     if 'end_node' in session.keys():
         end_node = session['end_node']
@@ -374,6 +413,8 @@ def run_from_input(results, units='english'):
             end_node = end_node[0]
 
         session['end_node'] = end_node
+        session['endlng'] = results['endlng']
+        session['endlat'] = results['endlat']
 
     print("CHOSEN NODES: ", start_node, end_node)
 
@@ -409,7 +450,5 @@ def run_from_input(results, units='english'):
     session['possible_routes']  = possible_routes
     session['route_properties'] = route_properties
     session['gpx_tracks']       = gpx_tracks
-    session['tmap']             = tmap
-
 
     return route_properties, gpx_tracks
