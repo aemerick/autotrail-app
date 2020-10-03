@@ -39,44 +39,44 @@ _all_session_vars = ['mapclat','mapclng','startlat','startlng','endlat','endlng'
                      'gpx_tracks','start_node','end_node','trailroutes']
 
 
-@app.route('/dev')
-def dev():
-    """
-    Hard-code user-input to make for a faster test run of the output.
-    """
-
-    string_args = ['units']
-
-    float_args = ['mindistance',
-                      'maxdistance',
-                      'minelevation',
-                      'maxelevation',
-                      'maxgrade',
-                      'backtrack',
-                      'numroutes','startlat','startlng','endlat','endlng']
-
-    results = {'units' : 'english',
-               'mindistance' : 5.0 * _m_in_mi,
-               'maxdistance' : 8.0 * _m_in_mi,
-               'minelevation' : 1000.0 * _m_in_ft,
-               'maxelevation' : 3000.0 * _m_in_ft,
-               'maxgrade' : 100.0,
-               'mingrade' : 0.0,
-               'backtrack' : 3,
-               'numroutes' : 2,
-               'startlng' :-105.27818,
-               'startlat' :  39.99855,
-               'endlng'   : -105.27818,
-               'endlat'   :  39.99855}
-
-    output, gpx_tracks = run_from_input(results,units =results['units'])
-    du = 'mi'
-    eu = 'ft'
-
-    return redirect( url_for('model_output',
-                 startlat=results['startlat'],startlng=results['startlng'],
-                 trailroutes=json.dumps(output),
-                 du = du, eu = eu))
+#@app.route('/dev')
+#def dev():
+#    """
+#    Hard-code user-input to make for a faster test run of the output.
+#    """
+#
+#    string_args = ['units']
+#
+#    float_args = ['mindistance',
+#                      'maxdistance',
+#                      'minelevation',
+#                      'maxelevation',
+#                      'maxgrade',
+#                      'backtrack',
+#                      'numroutes','startlat','startlng','endlat','endlng']
+#
+#    results = {'units' : 'english',
+#               'mindistance' : 5.0 * _m_in_mi,
+#               'maxdistance' : 8.0 * _m_in_mi,
+#               'minelevation' : 1000.0 * _m_in_ft,
+#               'maxelevation' : 3000.0 * _m_in_ft,
+#               'maxgrade' : 100.0,
+#               'mingrade' : 0.0,
+#               'backtrack' : 3,
+#               'numroutes' : 2,
+#               'startlng' :-105.27818,
+#               'startlat' :  39.99855,
+#               'endlng'   : -105.27818,
+#               'endlat'   :  39.99855}
+#
+#    output, gpx_tracks = run_from_input(results,units =results['units'])
+#    du = 'mi'
+#    eu = 'ft'
+#
+#    return redirect( url_for('model_output',
+#                 startlat=results['startlat'],startlng=results['startlng'],
+#                 trailroutes=json.dumps(output),
+#                 du = du, eu = eu))
 
 
 @app.route('/button/reset_session', methods=['GET'])
@@ -272,21 +272,23 @@ def model_input():
 
         return redirect( url_for('model_output',
                          startlat=session['startlat'],startlng=session['startlng'],
+                         numroutes=len(output),
                          trailroutes= json.dumps(trailroutes), # json.dumps(output),
-                         gpx_tracks = json.dumps(gpx_tracks),
+                         #gpx_tracks = json.dumps(gpx_tracks),
                          #gpx_tracks=json.dumps(gpx_tracks),
                          du = du, eu = eu))
 
 
 
-@app.route('/model_output/<startlat>/<startlng>/<trailroutes>/<du>/<eu>', methods=['GET','POST'])
-def model_output(startlat, startlng,trailroutes, du, eu):
+@app.route('/model_output/<startlat>/<startlng>/<numroutes>/<trailroutes>/<du>/<eu>', methods=['GET','POST'])
+def model_output(startlat, startlng, numroutes, trailroutes, du, eu):
     """
     Prepare and render the results
     """
 
     if request.method == 'GET':
         return render_template("model_output.html", startlat=startlat,startlng=startlng,
+                                                    numroutes=numroutes,
                                                     trailroutes=ast.literal_eval(trailroutes),
                                                     du=du,
                                                     eu=eu)

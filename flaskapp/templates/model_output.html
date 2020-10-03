@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <base href="/">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,22 +20,23 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
-
   <!-- Leaflet JS (after the CSS!) -->
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
       integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
       crossorigin=""></script>
 
-  <script type='text/text/javascript' src="lmap.js"></script>
+  <script src="/static/dist/leaflet.polylineDecorator.js"></script>
+
+  <script type="text/javascript" src="/static/js/lmap.js"></script>
 
 
   <title>Plan-It Results!</title>
 
   <!-- Bootstrap core CSS -->
-  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Custom styles for this template -->
-  <link href="../static/css/bootstrap-template.css" rel="stylesheet">
+  <link href="/static/css/bootstrap-template.css" rel="stylesheet">
 
   <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!--[if lt IE 9]>
@@ -85,28 +87,111 @@
 
     //leafletMap("{{eu}}");
 
-    function displayRoute(trailnum)
+/*
+    function displayTrails()
     {
       $.ajax(
       {
         type : 'POST',
-        url : "/button/display_route",
+        url : "/button/display_trails",
         contentType: "application/json;charset=UTF-8",
         dataType:'json',
-        data    : JSON.stringify( { "val" : trailnum } ),
+        data    : JSON.stringify( { "val" : 0 } ),
         success : function(data)
         {
           if (data !=null)
           {
             const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525']
             var points = data;
-            var polyline = L.polyline(points);
-            polyline.setStyle( {'color' : line_colors[trailnum-1] });
-            polyline.addTo(outmap);
+            for (var i = 0; i < points.length; i++){
+                var polyline = L.polyline(points[i]);
+                polyline.setStyle( {'color' : "#000000" ,
+                                    'weight' : 1,
+                                    'dashArray' :'5,5,1,5'});  // https://indicator.extension.iastate.edu/projects/tasksheets/reports/PM2082-16c.pdf
+                polyline.addTo(outmap);
+            }
           }
-        }/*success : function() {}*/
-      });/*$.ajax*/
+        } success : function() {}
+      });$.ajax
     }
+*/
+    if (typeof trail_points === 'undefined' || trail_points === null){
+      var trail_points = [];
+    }
+
+    /* Make a local container for the route polylines */
+    if (typeof rlines === 'undefined' || rlines === null){
+      var rlines = [];
+      for (var i = 0; i < {{numroutes}}; i++){
+        rlines.push(-1);
+      }
+
+    }
+
+    /* Functions to make POST to get route tracks to display. stores
+       locally as to NOT have to refresh */
+    function displayRoute(trailnum)
+    {
+
+      function plotRoute(index){
+        const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525'];
+
+        var polyline = L.polyline(rlines[index]);
+        polyline.setStyle( {'color' : line_colors[index],
+                            'weight' : 2});
+        polyline.addTo(outmap);
+
+        var decorator = L.polylineDecorator(polyline, {
+                                               patterns: [
+                                                   {offset: 0, repeat: 50,
+                                                    symbol: L.Symbol.arrowHead({pixelSize: 5,
+                                                                                polygon: false,
+                                                                                pathOptions: {color : '#000000',
+                                                                                      stroke: true}})}
+                                                         ]}).addTo(outmap);
+      } // plotRoute
+
+
+      if (rlines[trailnum-1] == -1){
+        function getRoute(){
+          return new Promise(function(resolve,reject) {
+            $.ajax(
+                {
+                  type : 'POST',
+                  url : "/button/display_route",
+                  contentType: "application/json;charset=UTF-8",
+                  dataType:'json',
+                  data    : JSON.stringify( { "val" : trailnum } ),
+                  success : function(data)
+                  {
+                    if (data !=null)
+                    {
+                       resolve(data);
+                    }
+                  },/*success : function() {}*/
+                error : function(err){
+                  reject(err);
+                } /* error */
+              });/*$.ajax*/
+            }); /* promise */
+          } /* getRoute() */
+
+
+          getRoute().then(function(data){
+            rlines[trailnum-1] = data;
+            plotRoute(trailnum-1);
+          }).catch(function(err) {
+            console.log("ERROR IN GET ROUTE ", err, trailnum);
+          })
+      } else {
+        // already got
+        console.log("displayRoute: displaying already gotten route");
+        plotRoute(trailnum-1);
+      }
+
+
+
+    } /* displayRoute */
 
     function clearMap() {
         for(i in outmap._layers) {
@@ -119,7 +204,16 @@
                 }
             }
         }
+
+      console.log('TPSIZE1: ',trail_points.length);
+      displayTrailsLMAP(trail_points, outmap);
+      console.log('TPSIZE2: ',trail_points.length);
+
     }
+
+    console.log('TPSIZE3: ',trail_points.length);
+    displayTrailsLMAP(trail_points, outmap);
+    console.log('TPSIZE4: ',trail_points.length);
 
     </script>
 
@@ -129,9 +223,9 @@
    <div class="container">
      <div class="starter-template">
        <h2>Results:</h2>
-       <p class="lead">Here are the suggested routes! Click on the GPX links to download a GPX file for each route!</p>
+       <p class="lead">Here are your routes! Click on the GPX links to download a GPX file for each route!</p>
      </div>
-     <button id="clearmap" class="btn btn-xs btn-default" onclick="clearMap()">Clear Map</button>
+     <button id="clearmap" class="btn btn-s btn-default" onclick="clearMap()">Clear Map</button></br>
      <table class="table table-hover">
      <tr><th>Route</th><th>Distance ({{du}})</th><th>Elev. + ({{eu}})</th><th>Elev. - ({{eu}})</th>
          <th>Max Elev. ({{eu}})</th><th>Min Elev. ({{eu}})</th><th>Max Grade (%)</th><th>Min Grade (%)</th><th> % Repeated</th>
@@ -162,6 +256,7 @@
          <button type="submit"  class="btn btn-default btn-lg">Reset and Compute a New Route!</button>
        </div>
     </form>
+  </br></br>
 
 
      <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
@@ -174,6 +269,7 @@
   <!-- Bootstrap core JavaScript
   ================================================== -->
   <!-- Placed at the end of the document so the pages load faster -->
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="static/js/bootstrap.min.js"></script>
   </body>

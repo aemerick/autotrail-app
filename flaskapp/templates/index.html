@@ -104,9 +104,17 @@
         }
         if ('mapclng' in queryDict){
           clng =         queryDict['mapclng'];
-          zoomlvl = 13;
+          zoomlvl = 10;
         }
 
+        if (('startlat' in queryDict) && ('startlng' in queryDict)){
+          if ((queryDict['startlat'] != '') && (queryDict['startlat'] != 'None') && (queryDict['startlng'] != '') && (queryDict['startlng'] != 'None')){
+            clat = queryDict['startlat'];
+            clng = queryDict['startlng'];
+            zoomlvl = 13;
+          }
+        }
+//
 
 
         var homemap = L.map('homemap').setView([clat,clng], zoomlvl);
@@ -123,7 +131,7 @@
       //  }).addTo(homemap);
 
       //   3) Esri topo
-      //  var Esri_WorldTopoMap = 
+      //  var Esri_WorldTopoMap =
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
       }).addTo(homemap);
@@ -247,29 +255,64 @@
        }
 
 
+
+       if (typeof trail_points === 'undefined' || trail_points === null){
+         var trail_points = [];
+       }
+
+       // displayTrails(trail_points, homemap);
+
        function displayTrails()
        {
-         $.ajax(
-         {
-           type : 'POST',
-           url : "/button/display_trails",
-           contentType: "application/json;charset=UTF-8",
-           dataType:'json',
-           data    : JSON.stringify( { "val" : 0 } ),
-           success : function(data)
-           {
-             if (data !=null)
-             {
-               const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525']
-               var points = data;
-               for (var i = 0; i < points.length; i++){
-                   var polyline = L.polyline(points[i]);
-                   polyline.setStyle( {'color' : "#000000" });
-                   polyline.addTo(homemap);
-               }
-             }
-           }/*success : function() {}*/
-         });/*$.ajax*/
+
+         function plotTrails(){
+           const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525'];
+           for (var i = 0; i < trail_points.length; i++){
+               var polyline = L.polyline(trail_points[i]);
+               polyline.setStyle( {'color' : "#000000",
+                                   'dashArray' :'5,5,1,5',
+                                   'weight':2 });
+               polyline.addTo(homemap);
+           }
+         }
+
+         if (trail_points.length == 0){
+           function getTrails() {
+             return new Promise(function(resolve,reject) {
+               $.ajax(
+                 {
+                   type : 'POST',
+                   url : "/button/display_trails",
+                   contentType: "application/json;charset=UTF-8",
+                   dataType:'json',
+                   data    : JSON.stringify( { "val" : 0 } ),
+                   success : function(data)
+                   {
+                     if (data !=null)
+                     {
+                       resolve(data);
+                     }
+                   }, /*success : function() {}*/
+                   error : function(err){
+                     reject(err);
+                   } /* error */
+                 });/*$.ajax*/
+              });
+            } /* get Trails */
+
+            getTrails().then(function(data) {
+              trail_points = data;
+              plotTrails();
+            }).catch(function(err) {
+              console.log("ERROR IN GET TRAILS", err);
+            })
+
+         } else {
+           console.log("Skipping AJAX call in get trails");
+           plotTrails();
+         }
+
+
        }
 
    </script>
@@ -298,22 +341,29 @@
         <label for="fname">Enter Location to Load Trails:</label>
         <input type="text" id="lname" name="lname"><br><br>
         <b1> <strong> Note: </strong> Choosing location downloads OSM data (server-side) and may take some time.</br>
-             This uses OSM's geotag search, which may NOT give as reliable results as expected (e.g. Google maps). </br>
-             The following locations are pre-cached (within 25 miles):</br>
-             1) "Boulder, CO" 2)"Altadena California" 3) "Bear Mountain State Park, New York" </br>
-             4) "Mount Washington, New Hampshire"
-        </b1></br></br>
+             This uses OSM's geotag search, which may NOT give as reliable results as expected (e.g. Google maps). </br></br>
         <input type="submit" class="btn btn-primary btn-lg" value="Make Map">
       </form>
-
+    </br></br>
+      The following locations are pre-cached (within 25 miles):</br>
+      1) <a href="/button/geocode?lname='Boulder, CO'">Boulder, CO</a></br>
+      2) <a href="/button/geocode?lname='Mount Wilson California'">Mount Wilson California</a></br>
+      3) <a href="/button/geocode?lname='Bear Mountain State Park, New York'">Bear Mountain State Park, New York</a></br>
+      4) <a href="/button/geocode?lname='Mount Washington, New Hampshire'">Mount Washington New Hampshire</a></br>
+      5) <a href="/button/geocode?lname='Issaquah Washington'">Issaquah Washington</a></br>
+      6) <a href="/button/geocode?lname='Boise Idaho'">Boise, Idaho</a></br>
+      7) <a href="/button/geocode?lname='Yosemite National Park'">Yosemite National Park</a></br>
+      8) <a href="/button/geocode?lname='Tegernsee Germany'">Tegernsee Germany</a></br>
+ </b1></br></br>
 
 
 {% endif %}
 
       {% if mapclat %}
 
-      <button id="displayTrails" class="btn btn-xs btn-default" onclick="displayTrails()">Plot Known Trails</button>
+      <!-- <button id="displayTrails" class="btn btn-xs btn-default" onclick="displayTrails()">Plot Known Trails</button> -->
 
+      <script> displayTrails(); </script>
 
       <b1>Zoom and scroll on the map above to choose start / end points for your activity.</br>
           Choose only a start point to plan a round-trip route.</br>
