@@ -26,9 +26,14 @@
       crossorigin=""></script>
 
   <script src="/static/dist/leaflet.polylineDecorator.js"></script>
-
   <script type="text/javascript" src="/static/js/lmap.js"></script>
 
+  <script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.2.1.min.js"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.2.1.min.js"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.2.1.min.js"
+          crossorigin="anonymous"></script>
 
   <title>Plan-It Results!</title>
 
@@ -85,36 +90,7 @@
 
     //}
 
-    //leafletMap("{{eu}}");
-
-/*
-    function displayTrails()
-    {
-      $.ajax(
-      {
-        type : 'POST',
-        url : "/button/display_trails",
-        contentType: "application/json;charset=UTF-8",
-        dataType:'json',
-        data    : JSON.stringify( { "val" : 0 } ),
-        success : function(data)
-        {
-          if (data !=null)
-          {
-            const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525']
-            var points = data;
-            for (var i = 0; i < points.length; i++){
-                var polyline = L.polyline(points[i]);
-                polyline.setStyle( {'color' : "#000000" ,
-                                    'weight' : 1,
-                                    'dashArray' :'5,5,1,5'});  // https://indicator.extension.iastate.edu/projects/tasksheets/reports/PM2082-16c.pdf
-                polyline.addTo(outmap);
-            }
-          }
-        } success : function() {}
-      });$.ajax
-    }
-*/
+    /* Define arrays to hold data for plotting trails and routes */
     if (typeof trail_points === 'undefined' || trail_points === null){
       var trail_points = [];
     }
@@ -122,11 +98,25 @@
     /* Make a local container for the route polylines */
     if (typeof rlines === 'undefined' || rlines === null){
       var rlines = [];
-      for (var i = 0; i < {{numroutes}}; i++){
+      for (var i = 0; i < {{numroutes}}; i++){ // since we only get one at a time
         rlines.push(-1);
       }
-
     }
+
+    if (typeof rline_layer === 'undefined' || rline_layer === null){
+      var rline_layer = [];
+      for (var i = 0; i < {{numroutes}}; i++){
+        rline_layer.push(-1);
+      }
+    }
+
+    if (typeof rline_dec === 'undefined' || rline_dec === null){
+      var rline_dec = [];
+      for (var i = 0; i < {{numroutes}}; i++){
+        rline_dec.push(-1);
+      }
+    }
+
 
     /* Functions to make POST to get route tracks to display. stores
        locally as to NOT have to refresh */
@@ -136,12 +126,12 @@
       function plotRoute(index){
         const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525'];
 
-        var polyline = L.polyline(rlines[index]);
-        polyline.setStyle( {'color' : line_colors[index],
+        rline_layer[index] = L.polyline(rlines[index]);
+        rline_layer[index].setStyle( {'color' : line_colors[index],
                             'weight' : 2});
-        polyline.addTo(outmap);
+        rline_layer[index].addTo(outmap);
 
-        var decorator = L.polylineDecorator(polyline, {
+        rline_dec[index] = L.polylineDecorator(rline_layer[index], {
                                                patterns: [
                                                    {offset: 0, repeat: 50,
                                                     symbol: L.Symbol.arrowHead({pixelSize: 5,
@@ -194,6 +184,23 @@
     } /* displayRoute */
 
     function clearMap() {
+
+        for (i in rline_layer){
+
+          if (rline_layer[i] != -1){
+            try{
+              outmap.removeLayer(rline_layer[i]);
+              outmap.removeLayer(rline_dec[i]);
+
+              // maybe just save / persist these to replot from line directly
+              rline_layer[i] = -1;
+              rline_dec[i]   = -1;
+            } catch(e){
+              console.log('problem removing rline layer',i, e);
+            }
+          }
+        }
+
         for(i in outmap._layers) {
             if(outmap._layers[i]._path != undefined) {
                 try {
@@ -205,20 +212,36 @@
             }
         }
 
-      console.log('TPSIZE1: ',trail_points.length);
-      displayTrailsLMAP(trail_points, outmap);
-      console.log('TPSIZE2: ',trail_points.length);
 
+      var res = displayTrailsLMAP(trail_points, outmap)
+      i///f('then' in res){
+        //res.then( function(data){
+          //trail_points = data;
+        //})
+      //}
+      //console.log('TPSIZE2: ',trail_points.length);
     }
 
-    console.log('TPSIZE3: ',trail_points.length);
-    displayTrailsLMAP(trail_points, outmap);
-    console.log('TPSIZE4: ',trail_points.length);
-
+    //console.log('TPSIZE3: ',trail_points.length);
+    var res = displayTrailsLMAP(trail_points, outmap);
+    //if('then' in res){
+    //  res.then( function(data){
+  //      trail_points = data;
+  //    })
+    //}
     </script>
 
 
  </div>
+
+<div id="profile_plot"></div>
+
+ <script>
+ fetch('/model_output/profile_plot')
+     .then(function(response) { return response.json() })
+     .then(function(item) { return Bokeh.embed.embed_item(item, "profile_plot") })
+ </script>
+
 
    <div class="container">
      <div class="starter-template">

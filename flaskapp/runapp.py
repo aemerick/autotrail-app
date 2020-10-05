@@ -17,6 +17,11 @@ from flask import request, redirect, url_for, jsonify, render_template, session,
 from flask import Flask, Markup, Response
 from flask_session import Session
 
+import bokeh.plotting as bokeh
+from bokeh.embed import components, json_item
+#from bokeh.models.sources
+
+
 import json
 import ast
 import uuid
@@ -36,7 +41,7 @@ _m_in_ft = 0.3048
 
 _all_session_vars = ['mapclat','mapclng','startlat','startlng','endlat','endlng',
                      'tmap','rr','ll','lname','possible_routes','route_properties',
-                     'gpx_tracks','start_node','end_node','trailroutes']
+                     'gpx_tracks','start_node','end_node','trailroutes','units']
 
 
 #@app.route('/dev')
@@ -247,6 +252,8 @@ def model_input():
             du = 'km'
             eu = 'm'
 
+        session['units'] = results['units']
+
         output, gpx_tracks = run_from_input(results,units =results['units'])
 
 
@@ -270,10 +277,14 @@ def model_input():
 
         session['trailroutes'] = trailroutes
 
+
+        #profile_plot = [make_plot(session['tmap'], session['possible_routes'], results['units'])]
+
         return redirect( url_for('model_output',
                          startlat=session['startlat'],startlng=session['startlng'],
                          numroutes=len(output),
                          trailroutes= json.dumps(trailroutes), # json.dumps(output),
+                         #profile_plot=profile_plot,
                          #gpx_tracks = json.dumps(gpx_tracks),
                          #gpx_tracks=json.dumps(gpx_tracks),
                          du = du, eu = eu))
@@ -290,6 +301,7 @@ def model_output(startlat, startlng, numroutes, trailroutes, du, eu):
         return render_template("model_output.html", startlat=startlat,startlng=startlng,
                                                     numroutes=numroutes,
                                                     trailroutes=ast.literal_eval(trailroutes),
+                                                    #profile_plot=profile_plot,
                                                     du=du,
                                                     eu=eu)
 
@@ -462,3 +474,48 @@ def run_from_input(results, units='english'):
     session['gpx_tracks']       = gpx_tracks
 
     return route_properties, gpx_tracks
+
+
+@app.route("/model_output/profile_plot")
+def bokeh_plot():
+
+    p = make_plot(session['tmap'],session['possible_routes'], session['units'])
+
+    return json.dumps(json_item(p,'profile_plot'))
+
+def make_plot(tmap, possible_routes, units):
+
+    plot = bokeh.figure(plot_height = 250, sizing_mode='scale_width')
+
+    if units == 'english':
+        dconv = _m_in_mi
+        econv = _m_in_ft
+        dlabel = 'mi'
+        elabel = 'ft'
+    else:
+        dconv = 1.0
+        econv = 1.0
+        dlabel = 'km'
+        elabel = 'm'
+
+
+    line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525']
+
+    for i in range(len(possible_routes)):
+        dists = np.cumsum(tmap.reduce_edge_data('distances',nodes=possible_routes[i],function=None)) / dconv
+        alts  = tmap.reduce_edge_data('elevations',nodes=possible_routes[i],function=None) / econv
+
+        ech = alts[1:] - alts[:-1]
+        eg = np.sum(ech[ech>0])
+        el = np.sum(ech[ech<0])
+        print("Route %i gain / loss "%(i),np.sum(eg),np.sum(el))
+
+        plot.line(dists,alts,line_width=4,legend_label='Route %i'%(i+1), color = line_colors[i])
+
+    plot.xaxis.axis_label = 'Distance (%s)'%(dlabel)
+    plot.yaxis.axis_label = 'Elevation (%s)'%(elabel)
+    plot.legend.location = "top_left"
+
+    return plot
+#    script, div = components(plot)
+#    return script, div

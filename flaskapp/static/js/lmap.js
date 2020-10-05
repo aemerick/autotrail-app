@@ -12,7 +12,7 @@ function displayTrailsLMAP(trail_points, map)
     }
   }
 
-  if (trail_points.length == 0){
+  if (trail_points.length == 0 || (trail_points === 'undefined')){
     function getTrails() {
       return new Promise(function(resolve,reject) {
         $.ajax(
@@ -39,7 +39,7 @@ function displayTrailsLMAP(trail_points, map)
      getTrails().then(function(data) {
        trail_points = data;
        plotTrails(trail_points);
-       console.log("PLOT TP AFTER AJAX:");
+       return trail_points;
      }).catch(function(err) {
        console.log("ERROR IN GET TRAILS", err);
      })
@@ -49,5 +49,6 @@ function displayTrailsLMAP(trail_points, map)
     plotTrails(trail_points);
   }
 
-
+  console.log('returning from tp plot');
+  return trail_points;
 }
