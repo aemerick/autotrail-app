@@ -114,7 +114,25 @@
             zoomlvl = 13;
           }
         }
-//
+
+        if (("{{mapclat}}" && "{{mapclat}}" != "None" && "{{mapclat}}" != "") &&
+            ("{{mapclng}}" && "{{mapclng}}" != "None" && "{{mapclng}}" != "")) {
+          clat = parseFloat("{{mapclat}}");
+          clng = {{mapclng}};
+          zoomlvl = 13;
+        }
+        if (("{{startclat}}" && "{{startclat}}" != "None" && "{{startclat}}" != "") &&
+            ("{{startclng}}" && "{{startclng}}" != "None" && "{{startclng}}" != "")) {
+          clat = parseFloat("{{startlat}}");
+          clng = parseFloat("{{startlng}}");
+          zoomlvl = 13;
+        }
+        console.log("teseting mapclat: ","{{mapclat}}", '---', queryDict['mapclat']);
+        console.log("teseting startlat: ","{{startlat}}", '---', queryDict['startlat']);
+        console.log("teseting startlng: ","{{startlng}}", '---', queryDict['startlng']);
+        console.log("teseting endlng: ","{{endlat}}", '---', queryDict['endlat']);
+        console.log("teseting endlat: ","{{endlng}}", '---', queryDict['endlng']);
+
 
 
         var homemap = L.map('homemap').setView([clat,clng], zoomlvl);
@@ -157,15 +175,29 @@
         if ('startlat' in queryDict){
           jstartlat = queryDict['startlat'];
         }
+        if ("{{startlat}}" && "{{startlat}}" != "None" && "{{startlat}}" != ""){
+          jstartlat = parseFloat("{{startlat}}");
+        }
         if ('startlng' in queryDict){
           jstartlng = queryDict['startlng'];
         }
+        if ("{{startlng}}" && "{{startlng}}" != "None" && "{{startlng}}" != ""){
+          jstartlng = parseFloat("{{startlng}}");
+        }
         if ('endlat' in queryDict){
+
           jendlat = queryDict['endlat'];
+        }
+        if ("{{endlat}}" && "{{endlat}}" != "None" && "{{endlat}}" != ""){
+          jendlat = parseFloat("{{endlat}}");
         }
         if ('endlng' in queryDict){
           jendlng = queryDict['endlng'];
         }
+        if ("{{endlng}}" && "{{endlng}}" != "None" && "{{endlng}}" != ""){
+          jendlng = parseFloat("{{endlng}}");
+        }
+
 
         // not a great assumption, but fine since they should always be together
         if (typeof(jstartlat) != 'undefined' && jstartlat != null && jstartlat != '')
@@ -203,16 +235,18 @@
           // show point with reset button, but save end coords if they exist
           if (typeof(jendlat) != 'undefined' && jendlat != null && jendlat != '') {
               L.marker([jstartlat,jstartlng]).addTo(homemap)
-                        .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+jendlat+'&endlng='+jendlng+'">reset</a>)')
+                        .bindPopup('Start Point (<a href="{{ url_for('homepage',reset_start='1') }}?endlat='+jendlat+'&endlng='+jendlng+'">reset</a>)')
                         .openPopup();
 
               L.marker([jendlat,jendlng]).addTo(homemap)
-                                  .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+jstartlat+'&startlng='+jstartlng+'">reset</a>)')
+                                  .bindPopup('End Point (<a href="{{ url_for('homepage',reset_end='1')}}?startlat='+jstartlat+'&startlng='+jstartlng+'">reset</a>)')
                                   .openPopup();
           } else {
             L.marker([jstartlat,jstartlng]).addTo(homemap)
-                      .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?">reset</a>)')
+                      .bindPopup('Start Point (<a href="{{ url_for('homepage',reset_start='1') }}?">reset</a>)')
                       .openPopup();
+
+
 
             homemap.on('click',
                function(e){
@@ -231,15 +265,15 @@
           // show point with reset button, but save start coords if they exist
           if (typeof(jstartlat) != 'undefined' && jstartlat != null && jstartlat !=''){
              L.marker([jstartlat,jstartlng]).addTo(homemap)
-                      .bindPopup('Start Point (<a href="{{ url_for('homepage') }}?endlat='+jendtlat+'&endlng='+jendlng+'">reset</a>)')
+                      .bindPopup('Start Point (<a href="{{ url_for('homepage',reset_start='1') }}?endlat='+jendlat+'&endlng='+jendlng+'">reset</a>)')
                       .openPopup();
 
               L.marker([jendlat,jendlng]).addTo(homemap)
-                        .bindPopup('End Point (<a href="{{ url_for('homepage') }}?startlat='+jstartlat+'&startlng='+jstartlng+'">reset</a>)')
+                        .bindPopup('End Point (<a href="{{ url_for('homepage',reset_end='1') }}?startlat='+jstartlat+'&startlng='+jstartlng+'">reset</a>)')
                         .openPopup();
           } else {
             L.marker([jendlat,jendlng]).addTo(homemap)
-                      .bindPopup('End Point (<a href="{{ url_for('homepage') }}?">reset</a>)')
+                      .bindPopup('End Point (<a href="{{ url_for('homepage',reset_end='1') }}?">reset</a>)')
                       .openPopup();
 
             // just in case
@@ -434,7 +468,7 @@
 
 
   </br>
-     <form action="/" method="GET">
+     <form action="{{url_for('homepage')}}" method="GET">
        <div>
          <button type="submit"  class="btn btn-default btn-lg">Reset Current Map and Parameters</button>
        </div>

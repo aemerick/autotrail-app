@@ -124,11 +124,12 @@
     {
 
       function plotRoute(index){
-        const line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525'];
+        const line_colors = ['#1f78b4', '#33a02c', '#e31a1c','#ff7f00','#6a3d9a',
+                           '#a6cee3', '#b2df8a', '#fb9a99', '#fdbf6f','#cab2d6'];
 
         rline_layer[index] = L.polyline(rlines[index]);
         rline_layer[index].setStyle( {'color' : line_colors[index],
-                            'weight' : 2});
+                            'weight' : 4});
         rline_layer[index].addTo(outmap);
 
         rline_dec[index] = L.polylineDecorator(rline_layer[index], {
@@ -250,7 +251,7 @@
      </div>
      <button id="clearmap" class="btn btn-s btn-default" onclick="clearMap()">Clear Map</button></br>
      <table class="table table-hover">
-     <tr><th>Route</th><th>Distance ({{du}})</th><th>Elev. + ({{eu}})</th><th>Elev. - ({{eu}})</th>
+     <tr><th> Plot </br> Route</th><th>Distance ({{du}})</th><th>Elev. + ({{eu}})</th><th>Elev. - ({{eu}})</th>
          <th>Max Elev. ({{eu}})</th><th>Min Elev. ({{eu}})</th><th>Max Grade (%)</th><th>Min Grade (%)</th><th> % Repeated</th>
          <th>Download Link</th></tr>
      {% for trail in trailroutes %}
@@ -259,7 +260,7 @@
        <td>{{ trail['distance']}}</td><td> {{ trail['elevation_gain'] }}</td><td> {{ trail['elevation_loss'] }}</td>
               <td>{{trail['max_altitude']}}</td><td>{{trail['min_altitude']}}</td><td>{{trail['max_grade']}}</td><td>{{trail['min_grade']}}</td>
               <td>{{trail['repeated_percent']}}</td>
-              <td><a href="/button/dowload_gpx?val={{trail['route']}}">GPX</button></td>
+              <td><a href="/button/dowload_gpx?val={{trail['route']}}" download="PlanIt_route_{{trail['route']}}.xml.gpx">GPX</button></td>
              </tr>
      {% endfor %}
      </table>

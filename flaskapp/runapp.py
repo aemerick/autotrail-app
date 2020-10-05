@@ -167,31 +167,49 @@ def button_download_gpx():
 @app.route('/',  methods=["GET","POST"])
 def homepage():
 
-    print('homepage requests: ' ,request.args)
-    print('homepage session: ', session)
+    print('homepage requests: ' ,request.args, request.args.get('reset_start',''))
+    #print('homepage session: ', session)
+
+
+    # this is kinda a bad way to do all of this but just trying to
+    # get something that works:
+    if 'reset_start' in request.args:
+        session['startlat'] = None
+        session['startlng'] = None
+
+    if 'reset_end' in request.args:
+        session['endlat'] = None
+        session['endlng'] = None
 
     lname    = request.args.get('lname',session.get('lname',''))
 
     mapclat  = request.args.get('mapclat',session.get('mapclat',''),type=float)
     mapclng  = request.args.get('mapclng',session.get('mapclng',''),type=float)
 
-    error    = request.args.get('error',None)
+    error    = request.args.get('error','')
     startlat = request.args.get('startlat', session.get('startlat',''), type=float)
     startlng = request.args.get('startlng', session.get('startlng',''), type=float)
     endlat   = request.args.get('endlat', session.get('endlat',''), type=float)
     endlng   = request.args.get('endlng', session.get('endlng',''), type=float)
 
-    session['mapclat'] = mapclat
-    session['mapclng'] = mapclng
+    session['mapclat']  = mapclat
+    session['mapclng']  = mapclng
     session['startlat'] = startlat
     session['startlng'] = startlng
-    session['endlat'] = endlat
-    session['endlng'] = endlng
+    session['endlat']   = endlat
+    session['endlng']   = endlng
 
-    return render_template("index.html", error=error,startlat=startlat,
-                                         startlng=startlng,
+    print("HOME PAGE:   ", session['mapclat'], session['mapclng'], session['startlat'],session['startlng'],session['endlat'],session['endlng'])
+
+
+
+    return render_template("index.html", startlat=startlat,startlng=startlng,
                                          endlat=endlat, endlng=endlng,
-                                         lname=lname, mapclat=mapclat, mapclng=mapclng)
+                                         lname=lname,
+                                         mapclat=mapclat, mapclng=mapclng,
+                                         error=error)
+
+
 
 @app.route('/model_input', methods=['POST'])
 def model_input():
@@ -485,7 +503,16 @@ def bokeh_plot():
 
 def make_plot(tmap, possible_routes, units):
 
-    plot = bokeh.figure(plot_height = 250, sizing_mode='scale_width')
+    num_routes = len(possible_routes)
+
+    if num_routes <= 3:
+        height = 200
+    elif num_routes <= 5:
+        height = 200 + 25*(num_routes-3)//2
+
+    plot = bokeh.figure(plot_height=height,
+                        plot_width=750)
+                        #sizing_mode='scale_width')
 
     if units == 'english':
         dconv = _m_in_mi
@@ -499,7 +526,8 @@ def make_plot(tmap, possible_routes, units):
         elabel = 'm'
 
 
-    line_colors = ['#fc8d59','#e34a33','#b30000','#969696','#636363','#252525']
+    line_colors = ['#1f78b4', '#33a02c', '#e31a1c','#ff7f00','#6a3d9a',
+                   '#a6cee3', '#b2df8a', '#fb9a99', '#fdbf6f','#cab2d6']
 
     for i in range(len(possible_routes)):
         dists = np.cumsum(tmap.reduce_edge_data('distances',nodes=possible_routes[i],function=None)) / dconv
@@ -515,6 +543,7 @@ def make_plot(tmap, possible_routes, units):
     plot.xaxis.axis_label = 'Distance (%s)'%(dlabel)
     plot.yaxis.axis_label = 'Elevation (%s)'%(elabel)
     plot.legend.location = "top_left"
+    plot.legend.background_fill_alpha = 0.0
 
     return plot
 #    script, div = components(plot)
