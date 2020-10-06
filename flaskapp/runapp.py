@@ -116,13 +116,13 @@ def button_display_route(val=0):
 def button_display_trails():
 
     if request.method == 'POST':
-        print("gathering trail data ")
+        #print("gathering trail data ")
         # need to gather ALL gpx tracks into an array
         array = []
         for (u,v,d) in session['tmap'].edges(data=True):
            array.append( [(c[1],c[0]) for c in d['geometry'].coords])
 
-        print("done, ", np.shape(array))
+        #print("done, ", np.shape(array))
         return json.dumps(array)
 
 @app.route('/button/geocode', methods=['GET'])
@@ -136,9 +136,9 @@ def geocode():
         session['mapclat']=lat
         session['mapclng']=lng
 
-        print("GEOCODING")
+        #print("GEOCODING")
         generate_map(lat,lng)
-        print("DONE GEOCODING")
+        #print("DONE GEOCODING")
 
         return redirect(url_for('homepage', mapclat=lat, mapclng=lng))
 
@@ -149,7 +149,7 @@ def button_download_gpx():
 
         val = int(request.args.get('val','')) - 1
 
-        print("Downloading : ",val)
+        #print("Downloading : ",val)
 
         if not ('possible_routes' in session.keys()):
             raise RuntimeError
@@ -231,11 +231,11 @@ def model_input():
 
         for k in float_args:
             results[k] = request.form.get(k, '')
-            print(k,results[k])
+            #print(k,results[k])
             if (results[k] == '') or (results[k] == None) or (results[k] == 'None'):
                 results[k] = None
             else:
-                print(k,results[k])
+                #print(k,results[k])
                 results[k] = float(results[k])
 
         for k in string_args:
@@ -398,7 +398,7 @@ def generate_map(mapclat, mapclng,
 
     if tmap is None:
         center_point = (session['mapclat'], session['mapclng'])
-        print("Making map with center: ", center_point)
+        #print("Making map with center: ", center_point)
         tmap = osm_process.osmnx_trailmap(center_point = center_point,
                                           dist=radius)
 
@@ -406,18 +406,20 @@ def generate_map(mapclat, mapclng,
         session['ll']   = tmap.ll
         session['rr']   = tmap.rr
 
-        print("map made with: ", tmap.ll, tmap.rr)
+        #print("map made with: ", tmap.ll, tmap.rr)
 
     tmap.ensure_edge_attributes()
 
+    tmap._dynamic_weighting = False
+
     tmap._default_weight_factors = {'distance'          : 1,
-                                    'elevation_gain'    : 0,
+                                    'elevation_gain'    : 1,
                                     'elevation_loss'    : 0,      # off
                                     'average_grade'     : 0,
-                                    'average_max_grade' : 0,
+                                    'average_max_grade' : 100,
                                     'average_min_grade' : 0,
                                     'min_grade'         : 0,           # off
-                                    'max_grade'         : 0,           # off
+                                    'max_grade'         : 100,           # off
                                     'traversed_count'   : 100,    # very on
                                     'in_another_route'  : 2}
 
@@ -457,25 +459,43 @@ def run_from_input(results, units='english'):
         session['endlng'] = results['endlng']
         session['endlat'] = results['endlat']
 
-    print("CHOSEN NODES: ", start_node, end_node)
+    #print("CHOSEN NODES: ", start_node, end_node)
 
     if (start_node == None) or (end_node == None):
         print("Cannot find a node!!")
         raise RuntimeError
 
-    distance = 0.5*(float(results['mindistance']) + float(results['maxdistance']))
 
+
+    distance = 0.5*(float(results['mindistance']) + float(results['maxdistance']))
+    eg = 0.5 * ( float(results['minelevation']) + float(results['maxelevation']))
     n_routes = int(results['numroutes'])
 
-    target_values = {'distance' : distance}
 
-    print('---', results)
-    print("---", start_node, end_node, target_values)
+    target_values = {'distance' : distance, 'elevation_gain' : eg}
+
+    tcdict = {1 : 0, 2 : 0.25, 3 : 1, 4 : 10, 5: 100}
+
+    tmap._default_weight_factors = {'distance'          : 1,
+                                    'elevation_gain'    : 0,
+                                    'elevation_loss'    : 0,      # off
+                                    'average_grade'     : 0,
+                                    'average_max_grade' : 0,
+                                    'average_min_grade' : 0,
+                                    'min_grade'         : 0,           # off
+                                    'max_grade'         : 0,           # off
+                                    'traversed_count'   : tcdict[results['backtrack']],    # very on
+                                    'in_another_route'  : 1}
+
+
+
+    #print('---', results)
+    #print("---", start_node, end_node, target_values)
 
     _, possible_routes, scores = tmap.multi_find_route(start_node,
-                                                                target_values,
-                                                                n_routes=n_routes,
-                                                                end_node = end_node,
+                                                       target_values,
+                                                       n_routes=n_routes,
+                                                       end_node = end_node,
                                                                 reinitialize=True,
                                                                 reset_used_counter=True)
 
@@ -539,7 +559,7 @@ def make_plot(tmap, possible_routes, units):
         ech = alts[1:] - alts[:-1]
         eg = np.sum(ech[ech>0])
         el = np.sum(ech[ech<0])
-        print("Route %i gain / loss "%(i),np.sum(eg),np.sum(el))
+        # print("Route %i gain / loss "%(i),np.sum(eg),np.sum(el))
 
         plot.line(dists,alts,line_width=4,legend_label='Route %i'%(i+1), color = line_colors[i])
 
