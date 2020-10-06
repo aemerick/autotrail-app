@@ -400,7 +400,7 @@
       <script> displayTrails(); </script>
 
       <b1> To begin, zoom and scroll on the map above to choose start / end points for your activity.</br>
-          You <strong> must </strong> choose at least a start point. </br>
+          Select a point close to a desired trailhead for the best results. </br>
           Choose only a start point to plan a round-trip route.</br>
 
       {% if startlat %}
@@ -441,6 +441,8 @@
 
        <div class="form-group">
          <label for="backtrack"><span title="How aggressively do  you want to avoid repeating the same section of trail? The higher the value the more Plan-It will try to avoid out-and-back routes and sections.">Avoid Backtracking</span>:</label>
+         <input type="radio" id="backtrack0" name='backtrack' value="0">
+         <label for="backtrack0"> none </label>
          <input type="radio" id="backtrack1" name='backtrack' value="1">
          <label for="backtrack1"> low </label>
          <input type="radio" id="backtrack2" name='backtrack' value="2" checked="checked">
