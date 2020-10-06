@@ -508,7 +508,9 @@ def make_plot(tmap, possible_routes, units):
     if num_routes <= 3:
         height = 200
     elif num_routes <= 5:
-        height = 200 + 25*(num_routes-3)//2
+        height = 250
+    elif num_routes > 5:
+        height = 325
 
     plot = bokeh.figure(plot_height=height,
                         plot_width=750)
