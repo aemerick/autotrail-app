@@ -221,7 +221,7 @@
                  var lat = coord.lat;
                  var lng = coord.lng;
                  var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
-                 .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'"> here</a>').openPopup();
+                 .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'"> click here to set</a>').openPopup();
                });
 
         }
@@ -254,7 +254,7 @@
                 var lat = coord.lat;
                 var lng = coord.lng;
                 var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
-                  .bindPopup('End Point <a href="{{ url_for('mapclick') }}?startlat='+jstartlat+'&startlng='+jstartlng+'&endlat='+lat+'&endlng='+lng+'"> here</a>').openPopup();
+                  .bindPopup('End Point <a href="{{ url_for('mapclick') }}?startlat='+jstartlat+'&startlng='+jstartlng+'&endlat='+lat+'&endlng='+lng+'">  click here to set</a>').openPopup();
              });
           }
 
@@ -283,7 +283,7 @@
                 var lat = coord.lat;
                 var lng = coord.lng;
                 var newMarker = L.marker(e.latlng, {draggable:'true'}).addTo(homemap)
-                .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'&endlat='+jendlat+'&endlng='+jendlng+'"> here</a>').openPopup();
+                .bindPopup('Start Point <a href="{{ url_for('mapclick') }}?startlat='+lat+'&startlng='+lng+'&endlat='+jendlat+'&endlng='+jendlng+'">  click here to set</a>').openPopup();
               });
           }
        }
@@ -375,7 +375,7 @@
         <label for="fname">Enter Location to Load Trails:</label>
         <input type="text" id="lname" name="lname"><br><br>
         <b1> <strong> Note: </strong> Choosing location downloads OSM data (server-side) and may take up to 1-2 minutes to load.</br>
-             Warning: This uses OSM's geotag search, which will NOT alwasy give the expected result (e.g. it isn't as good as Google!). </br></br>
+             Warning: This uses OSM's geotag search, which will NOT always give the expected result (e.g. it isn't as good as Google!). </br></br>
         <input type="submit" class="btn btn-primary btn-lg" value="Make Map">
       </form>
     </br></br>
@@ -399,46 +399,48 @@
 
       <script> displayTrails(); </script>
 
-      <b1>Zoom and scroll on the map above to choose start / end points for your activity.</br>
-          Choose only a start point to plan a round-trip route.</br>
+      <b1> To begin, zoom and scroll on the map above to choose start / end points for your activity.</br>
           You <strong> must </strong> choose at least a start point. </br>
+          Choose only a start point to plan a round-trip route.</br>
 
-      {% if startlat % }
+      {% if startlat %}
+    </br>
+  <strong> Now select your constraits.</strong> Hover over each quantity for more information. </br>
           Note: Long routes (> 25 mi) and many routes (> 5) may
-          take some time to compute. </b1>
+          take some time to compute. </b1> </br> </br>
 
 
      <form action="/model_input" method="POST">
 
        <div class="form-group">
-         <label for="units">Units: </label>
+         <label for="units"><span title="Unit system for results (distance, elevation)">Units</span>: </label>
          <input type="radio" id="units1" name='units' value="english" checked="checked">
-         <label for="units1"> English (feet, miles) </label>
+         <label for="units1"> English (miles, ft) </label>
          <input type="radio" id="units2" name='units' value="metric">
-         <label for="units2"> Metric (meters, kilometers) </label>
+         <label for="units2"> Metric (kilometers, meters) </label>
        </fieldset>
        </div>
 
        <div class="form-group">
-         <label for="distance">Distance Range (mi):</label>
-         <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0">
+         <label for="distance"><span title="This constraint is enforced more strictly than the rest. This must be supplied. Supplying only one of min or max treats the value as the target, rather than making an unbounded search."> Distance </span>:</label>
+         Min - <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0">
          <!-- <input type="hidden" name="mindistance" value="-1.0"/>-->
-         <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0 ">
+         Max - <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0 ">
        </div>
 
        <div class="form-group">
-         <label for="elevation">Elevation Range (ft):</label>
-         <input type="number" id="minelevation" name='minelevation' min=0 max=100000  placeholder="e.g. 1000.0 ">
-         <input type="number" id="maxelevation" name='maxelevation' min=0 max=100000  placeholder="e.g. 3000.0 ">
+         <label for="elevation"><span title="Minimum and maximum elevation gain. It may not always be possible to satisfy this constraint and the distance constraint at the same time, which is heavily dependent on local topography (hilly/flat)"> Elevation Gain</span> :</label>
+         Min - <input type="number" id="minelevation" name='minelevation' min=0 max=100000  placeholder="e.g. 1000.0 ">
+         Max - <input type="number" id="maxelevation" name='maxelevation' min=0 max=100000  placeholder="e.g. 3000.0 ">
        </div>
 
        <div class="form-group">
-         <label for="grade">Max Grade (percent):</label>
+         <label for="grade"><span title="The ratio of elevation gain to distance, expressed as a percent. E.g. 200 ft in 0.25 mi is 200/(0.25*5280) ~ 15%">Max Grade (percent)</span>:</label>
          <input type="number" id="maxgrade" name='maxgrade' min=0 max=100 placeholder="e.g.  5.0">
        </div>
 
        <div class="form-group">
-         <label for="backtrack">Avoid Backtracking:</label>
+         <label for="backtrack"><span title="How aggressively do  you want to avoid repeating the same section of trail? The higher the value the more Plan-It will try to avoid out-and-back routes and sections.">Avoid Backtracking</span>:</label>
          <input type="radio" id="backtrack1" name='backtrack' value="1">
          <label for="backtrack1"> low </label>
          <input type="radio" id="backtrack2" name='backtrack' value="2" checked="checked">
@@ -451,7 +453,7 @@
        </div>
 
        <div class="form-group">
-        <label for"numroutes">Number of Routes (up to 10):</label>
+        <label for"numroutes"><span title="The total number of routes to generate. Plan-It attempts to produce a greater diversity of routes as this number increases, but will take longer to compute.">Number of Routes (up to 10)</span>:</label>
         <input type="number" name="numroutes" min="1" max="10" value=1>
        </div>
 
@@ -464,7 +466,7 @@
 
        <div>
          <!-- action="{{url_for('model_input')}}" -->
-         <button type="submit"  class="btn btn-default btn-lg">Generate Route!</button>
+         <button type="submit"  class="btn btn-default btn-lg"><span title="Run Plan-It!">Generate Route!</span></button>
        </div>
 
      </form>
@@ -475,16 +477,17 @@
   </br>
      <form action="{{url_for('homepage')}}" method="GET">
        <div>
-         <button type="submit"  class="btn btn-default btn-lg">Reset Current Map and Parameters</button>
+         <button type="submit"  class="btn btn-default btn-lg"><span title="Click this to refresh the settings on this page.">Reset Current Map and Parameters</span></button>
        </div>
     </form>
 
     </br>
     <form action="/button/reset_session" method="GET">
       <div>
-        <button type="submit"  class="btn btn-warning btn-lg">Choose a New Location</button>
+        <button type="submit"  class="btn btn-warning btn-lg"><span title="Click here to start over from a new location. Also, if something went wrong and you found a bug, congrats!! This will also reset to try and get you out of a bug.">Choose a New Location</span></button>
       </div>
    </form>
+ </br></br></br>
    {% endif %} <!-- end mapclat and maplng -->
 
    </div>
