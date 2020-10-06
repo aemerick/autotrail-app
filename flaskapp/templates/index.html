@@ -118,7 +118,7 @@
         if (("{{mapclat}}" && "{{mapclat}}" != "None" && "{{mapclat}}" != "") &&
             ("{{mapclng}}" && "{{mapclng}}" != "None" && "{{mapclng}}" != "")) {
           clat = parseFloat("{{mapclat}}");
-          clng = {{mapclng}};
+          clng = parseFloat("{{mapclng}}");
           zoomlvl = 13;
         }
         if (("{{startclat}}" && "{{startclat}}" != "None" && "{{startclat}}" != "") &&
@@ -374,8 +374,8 @@
       <form action="/button/geocode" method="GET">
         <label for="fname">Enter Location to Load Trails:</label>
         <input type="text" id="lname" name="lname"><br><br>
-        <b1> <strong> Note: </strong> Choosing location downloads OSM data (server-side) and may take some time.</br>
-             This uses OSM's geotag search, which may NOT give as reliable results as expected (e.g. Google maps). </br></br>
+        <b1> <strong> Note: </strong> Choosing location downloads OSM data (server-side) and may take up to 1-2 minutes to load.</br>
+             Warning: This uses OSM's geotag search, which will NOT alwasy give the expected result (e.g. it isn't as good as Google!). </br></br>
         <input type="submit" class="btn btn-primary btn-lg" value="Make Map">
       </form>
     </br></br>
@@ -401,6 +401,9 @@
 
       <b1>Zoom and scroll on the map above to choose start / end points for your activity.</br>
           Choose only a start point to plan a round-trip route.</br>
+          You <strong> must </strong> choose at least a start point. </br>
+
+      {% if startlat % }
           Note: Long routes (> 25 mi) and many routes (> 5) may
           take some time to compute. </b1>
 
@@ -466,6 +469,8 @@
 
      </form>
 
+
+    {% endif %} <!-- start lat if -->
 
   </br>
      <form action="{{url_for('homepage')}}" method="GET">
