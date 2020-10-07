@@ -271,6 +271,9 @@ def model_input():
             du = 'km'
             eu = 'm'
 
+            results['mindistance'] = results['mindistance'] * 1000.0 # to m!
+            results['maxdistance'] = results['maxdistance'] * 1000.0
+
         session['units'] = results['units']
 
         output, gpx_tracks = run_from_input(results,units =results['units'])
