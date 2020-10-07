@@ -399,21 +399,22 @@
 
       <script> displayTrails(); </script>
 
+      {% if not startlat %}
+
       <b1> To begin, zoom and scroll on the map above to choose start / end points for your activity.</br>
           Select a point close to a desired trailhead for the best results. </br>
           Choose only a start point to plan a round-trip route.</br>
 
-      {% if startlat %}
+      {% else %}
     </br>
   <strong> Now select your constraits.</strong> Hover over each quantity for more information. </br>
-          Note: Long routes (> 25 mi) and many routes (> 5) may
-          take some time to compute. </b1> </br> </br>
+          Note: Long routes (> 20 mi) and many routes (> 5) may take a little time to compute. </b1> </br> </br>
 
 
      <form action="/model_input" method="POST">
 
        <div class="form-group">
-         <label for="units"><span title="Unit system for results (distance, elevation)">Units</span>: </label>
+         <label for="units"><span title="Unit system for results (distance, elevation)">Units (distance, elevation)</span>: </label>
          <input type="radio" id="units1" name='units' value="english" checked="checked">
          <label for="units1"> English (miles, ft) </label>
          <input type="radio" id="units2" name='units' value="metric">
@@ -422,20 +423,20 @@
        </div>
 
        <div class="form-group">
-         <label for="distance"><span title="This constraint is enforced more strictly than the rest. This must be supplied. Supplying only one of min or max treats the value as the target, rather than making an unbounded search."> Distance </span>:</label>
-         Min - <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0">
+         <label for="distance"><span title="This constraint is enforced more strictly than the rest. This must be supplied. Supplying only one of min or max treats the value as the target, rather than making an unbounded search."> Distance &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span>:</label>
+         Min - <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0   ">
          <!-- <input type="hidden" name="mindistance" value="-1.0"/>-->
-         Max - <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0 ">
+         Max - <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0   ">
        </div>
 
        <div class="form-group">
-         <label for="elevation"><span title="Minimum and maximum elevation gain. It may not always be possible to satisfy this constraint and the distance constraint at the same time, which is heavily dependent on local topography (hilly/flat)"> Elevation Gain</span> :</label>
+         <label for="elevation"><span title="Minimum and maximum elevation gain. It may not always be possible to satisfy this constraint and the distance constraint at the same time, which is heavily dependent on local topography (hilly/flat)"> Elevation Gain &emsp;&emsp;&emsp;</span>:</label>
          Min - <input type="number" id="minelevation" name='minelevation' min=0 max=100000  placeholder="e.g. 1000.0 ">
          Max - <input type="number" id="maxelevation" name='maxelevation' min=0 max=100000  placeholder="e.g. 3000.0 ">
        </div>
 
        <div class="form-group">
-         <label for="grade"><span title="The ratio of elevation gain to distance, expressed as a percent. E.g. 200 ft in 0.25 mi is 200/(0.25*5280) ~ 15%">Max Grade (percent)</span>:</label>
+         <label for="grade"><span title="The ratio of elevation gain to distance, expressed as a percent. E.g. 200 ft in 0.25 mi is 200/(0.25*5280) ~ 15%">Max Grade (percent)&ensp;</span>:</label>
          <input type="number" id="maxgrade" name='maxgrade' min=0 max=100 placeholder="e.g.  5.0">
        </div>
 
