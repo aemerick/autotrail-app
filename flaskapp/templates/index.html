@@ -19,12 +19,25 @@
       integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
       crossorigin=""></script>
 
+
+
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="">
   <meta name="author" content="">
   <link rel="icon" href="../../favicon.ico">
+
+
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+    .w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+    .fa-anchor,.fa-coffee {font-size:200px}
+  </style>
 
   <title>Plan-It Trails</title>
 
@@ -60,31 +73,76 @@
   {% endif %}
 
 
-<!--
-  <head>
-      {{ hdr_txt  }}
-  </head>
-  <body>
-      <hr/>
-      {{ map_div }}
-      <hr/>
-  </body>
-  {# Note: script_txt MUST follow the body, so that div ids are defined to be referenced in the scripts #}
-  <script>
-      {{ script_txt }}
-  </script>
--->
+  <!-- Navbar -->
+  <div class="w3-top">
+    <div class="w3-bar w3-red w3-card w3-left-align w3-large">
+      <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
 
-<div class="container">
+      {% if mapclat %}
+      <form action="/button/reset_session" method="GET">
+        <div>
+          <button type="submit"  class="w3-bar-item w3-button w3-padding-large w3-white"><span title="Click here to start over from a new location. Also, if something went wrong and you found a bug, congrats!! This will also reset to try and get you out of a bug.">Choose a New Location</span></button>
+        </div>
+     </form>
+     {% endif %}
 
-  <div id="homemap" style=" position: relative;
-                           top: 0px;
-                           left: 0px;
-                           bottom: 0;
-                           right: 0;
-                           width: 750px;
-                           height: 500px;
-                           overflow: auto;"></div>
+      <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Source Code</a>
+      <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">App Source Code</a>
+      <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>
+    </div>
+
+    <!-- Navbar on small screens -->
+    <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+      {% if mapclat %}
+      <form action="/button/reset_session" method="GET">
+        <div>
+          <button type="submit"  class="w3-bar-item w3-button w3-padding-large w3-white"><span title="Click here to start over from a new location. Also, if something went wrong and you found a bug, congrats!! This will also reset to try and get you out of a bug.">Choose a New Location</span></button>
+        </div>
+     </form>
+     {% endif %}      <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-padding-large">Code</a>
+      <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-padding-large">App Code</a>
+      <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>      
+    </div>
+  </div>
+
+  <header class="w3-container w3-red w3-center" style="padding:64px 16px">
+    <div class="w3-content">
+      <h1 class="w3-margin w3-xxlarge">Plan-It Trails</h1>
+   </div>
+   </div>
+ </header>
+
+
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+  <!--                                                                         -->
+
+  {% if mapclat %}
+
+  <div class="w3-stretch w3-light-grey w3-padding-16 w3-container">
+    <div class="w3-content">
+      <div class="w3-twothird w3-left">
+
+        <div id="homemap" style=" position: relative;
+                                 top: 0px;
+                                 left: 0px;
+                                 bottom: 0;
+                                 right: 0;
+                                 width: 900px;
+                                 height: 500px;
+                                 overflow: auto;"></div>
+      </div> <!-- 2/3 center for map -->
+    </div>
+  </div>
 
 
 
@@ -153,22 +211,6 @@
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
       }).addTo(homemap);
-
-
-       // 4) Not Free
-       //var Thunderforest_Outdoors = L.tileLayer('https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey={apikey}', {
-      //  	attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      //  	apikey: '<your apikey>',
-      //  	maxZoom: 22
-      //  });
-
-    //  var Jawg_Terrain = L.tileLayer('https://{s}.tile.jawg.io/jawg-terrain/{z}/{x}/{y}{r}.png?access-token={accessToken}', {
-  //    	attribution: '<a href="http://jawg.io" title="Tiles Courtesy of Jawg Maps" target="_blank">&copy; <b>Jawg</b>Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  //    	minZoom: 0,
-  //    	maxZoom: 22,
-  //    	subdomains: 'abcd',
-  //    	accessToken: '<your accessToken>'
-  //    });
 
 
         var jstartlat='', jstartlng='', jendlat='', jendlng='';
@@ -351,18 +393,23 @@
 
    </script>
 
- </div>
+
+   {% endif %}
+
+<!--                                                                         -->
+<!--                                                                         -->
+<!--                                                                         -->
+<!--                                                                         -->
+<!--                                                                         -->
+<!--                                                                         -->
+<!--                                                                         -->
 
 
-<div class="container">
 
-   <div class="starter-template">
-       <h2>Plan-It Trails</h2>
-       <p></p>
-   </div>
+<div class="w3-row-padding w3-light-grey w3-padding-12 w3-container">
 
 
-   <div class = "container">
+   <div class = "w3-content">
 
   <!--
      <div class="container theme-showcase" role="main">
@@ -372,10 +419,10 @@
 {% if not mapclat %}
 
       <form action="/button/geocode" method="GET">
-        <label for="fname">Enter Location to Load Trails:</label>
-        <input type="text" id="lname" name="lname"><br><br>
-        <b1> <strong> Note: </strong> Choosing location downloads OSM data (server-side) and may take up to 1-2 minutes to load.</br>
-             Warning: This uses OSM's geotag search, which will NOT always give the expected result (e.g. it isn't as good as Google!). </br></br>
+        <b1> <strong> Note: </strong> Choosing a location via this search box downloads OSM data (server-side) and may take up to 1-2 minutes to load.</br>
+             This uses OSM's geotag search, which will NOT always give the expected result (e.g. it isn't as good as Google!). </br></br>
+             <label for="fname">Enter Location to Load Trails:</label>
+             <input type="text" id="lname" name="lname"><br><br>
         <input type="submit" class="btn btn-primary btn-lg" value="Make Map">
       </form>
     </br></br>
@@ -383,11 +430,12 @@
       1) <a href="/button/geocode?lname='Boulder, CO'">Boulder, CO</a></br>
       2) <a href="/button/geocode?lname='Mount Wilson California'">Mount Wilson California</a></br>
       3) <a href="/button/geocode?lname='Bear Mountain State Park, New York'">Bear Mountain State Park, New York</a></br>
-      4) <a href="/button/geocode?lname='Mount Washington, New Hampshire'">Mount Washington New Hampshire</a></br>
+    <!--  4) <a href="/button/geocode?lname='Mount Washington, New Hampshire'">Mount Washington New Hampshire</a></br> -->
       5) <a href="/button/geocode?lname='Issaquah Washington'">Issaquah Washington</a></br>
       6) <a href="/button/geocode?lname='Boise Idaho'">Boise, Idaho</a></br>
       7) <a href="/button/geocode?lname='Yosemite National Park'">Yosemite National Park</a></br>
       8) <a href="/button/geocode?lname='Tegernsee Germany'">Tegernsee Germany</a></br>
+      9) <a href="/button/geocode?lname='Lake District National Park, UK'">Lake District National Park, UK</a></br>
  </b1></br></br>
 
 
@@ -399,21 +447,22 @@
 
       <script> displayTrails(); </script>
 
+      {% if not startlat %}
+
       <b1> To begin, zoom and scroll on the map above to choose start / end points for your activity.</br>
           Select a point close to a desired trailhead for the best results. </br>
           Choose only a start point to plan a round-trip route.</br>
 
-      {% if startlat %}
+      {% else %}
     </br>
   <strong> Now select your constraits.</strong> Hover over each quantity for more information. </br>
-          Note: Long routes (> 25 mi) and many routes (> 5) may
-          take some time to compute. </b1> </br> </br>
+          Note: Long routes (> 20 mi) and many routes (> 5) may take a little time to compute. </b1> </br> </br>
 
 
      <form action="/model_input" method="POST">
 
        <div class="form-group">
-         <label for="units"><span title="Unit system for results (distance, elevation)">Units</span>: </label>
+         <label for="units"><span title="Unit system for results (distance, elevation)">Units (distance, elevation)</span>: </label>
          <input type="radio" id="units1" name='units' value="english" checked="checked">
          <label for="units1"> English (miles, ft) </label>
          <input type="radio" id="units2" name='units' value="metric">
@@ -422,20 +471,20 @@
        </div>
 
        <div class="form-group">
-         <label for="distance"><span title="This constraint is enforced more strictly than the rest. This must be supplied. Supplying only one of min or max treats the value as the target, rather than making an unbounded search."> Distance </span>:</label>
-         Min - <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0">
+         <label for="distance"><span title="This constraint is enforced more strictly than the rest. This must be supplied. Supplying only one of min or max treats the value as the target, rather than making an unbounded search."> Distance &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</span>:</label>
+         Min - <input type="number" step="0.1" id="mindistance" name='mindistance' min=1 max=200 placeholder="e.g. 10.0   ">
          <!-- <input type="hidden" name="mindistance" value="-1.0"/>-->
-         Max - <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0 ">
+         Max - <input type="number" step="0.1" id="maxdistance" name='maxdistance' min=1 max=200 placeholder="e.g. 15.0   ">
        </div>
 
        <div class="form-group">
-         <label for="elevation"><span title="Minimum and maximum elevation gain. It may not always be possible to satisfy this constraint and the distance constraint at the same time, which is heavily dependent on local topography (hilly/flat)"> Elevation Gain</span> :</label>
+         <label for="elevation"><span title="Minimum and maximum elevation gain. It may not always be possible to satisfy this constraint and the distance constraint at the same time, which is heavily dependent on local topography (hilly/flat)"> Elevation Gain &emsp;&emsp;&emsp;</span>:</label>
          Min - <input type="number" id="minelevation" name='minelevation' min=0 max=100000  placeholder="e.g. 1000.0 ">
          Max - <input type="number" id="maxelevation" name='maxelevation' min=0 max=100000  placeholder="e.g. 3000.0 ">
        </div>
 
        <div class="form-group">
-         <label for="grade"><span title="The ratio of elevation gain to distance, expressed as a percent. E.g. 200 ft in 0.25 mi is 200/(0.25*5280) ~ 15%">Max Grade (percent)</span>:</label>
+         <label for="grade"><span title="The ratio of elevation gain to distance, expressed as a percent. E.g. 200 ft in 0.25 mi is 200/(0.25*5280) ~ 15%">Max Grade (percent)&ensp;</span>:</label>
          <input type="number" id="maxgrade" name='maxgrade' min=0 max=100 placeholder="e.g.  5.0">
        </div>
 
@@ -492,12 +541,16 @@
  </br></br></br>
    {% endif %} <!-- end mapclat and maplng -->
 
-   </div>
-
-   <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-   <script src="static/js/bootstrap.min.js"></script>
+  </div> <!-- inner container -->
 
  </div> <!-- /.container-->
+
+
+ <footer class="w3-container w3-padding-64 w3-center w3-opacity">
+ <div class="w3-container w3-black w3-center w3-opacity w3-padding-64">
+  <p>@Copyright 2020, Andrew Emerick. <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+    Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+ </footer>
 
   <!-- Bootstrap core JavaScript
   ================================================== -->

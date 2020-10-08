@@ -9,6 +9,16 @@
   <meta name="author" content="">
   <link rel="icon" href="../../favicon.ico">
 
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+    .w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+    .fa-anchor,.fa-coffee {font-size:200px}
+  </style>
+
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
     integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
@@ -50,31 +60,93 @@
   <![endif]-->
 </head>
 
-<body>
-    <div class="container">
-    <div class="header clearfix">
-      <nav>
-        <ul class="nav nav-pills pull-left">
-          <!-- don't forget to link pages back to home-->
-          <li role="presentation"><a href="/">&larr; Back to Home</a></li>
-        </ul>
-      </nav>
+
+<div class="w3-top">
+  <div class="w3-bar w3-red w3-card w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+    <a href="#" class="w3-bar-item w3-button w3-padding-large w3-white">Reset Parameters and Choose Another Route</a>
+    <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Source Code</a>
+    <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">App Source Code</a>
+    <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>
+  </div>
+
+  <!-- Navbar on small screens -->
+  <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+    <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-padding-large">Code</a>
+    <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-padding-large">App Code</a>
+    <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>
+  </div>
+</div>
+
+<header class="w3-container w3-red w3-center" style="padding:64px 0px">
+    <div class="w3-content">
+      <h1 class="w3-margin w3-xxlarge">Plan-It Trails</h1>
+   </div>
+   </div>
+</header>
+
+
+  <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+    <div class="w3-content">
+      <div class="w3-twothird w3-left">
+    <!--here's the input container so you can query after output is served-->
+          <div id="outmap" style=" position: relative;
+                                   top: 0px;
+                                   left: 0px;
+                                   bottom: 0;
+                                   right: 0;
+                                   width: 900px;
+                                   height: 500px;
+                                   overflow: auto;"></div>
+
+      </div> <!-- 2/3 center for map -->
+
+      <div class="w3-onethird w3-left", id="profile_plot">
+
+      <div class="starter-template">
+          <h2>Results:</h2>
+          <h5 class="w3-padding-8">Here are your routes! Click on the GPX links to download a GPX file for each route!</h5>
+      </div>
+        <button id="clearmap" class="btn btn-s btn-default" onclick="clearMap()">Clear Map</button></br>
+        <table class="table table-hover">
+        <tr><th> Plot </br> Route</th><th>Distance ({{du}})</th><th>Elev. + ({{eu}})</th><th>Elev. - ({{eu}})</th>
+            <th>Max Elev. ({{eu}})</th><th>Min Elev. ({{eu}})</th><th>Max Grade (%)</th><th>Min Grade (%)</th><th> % Repeated</th>
+            <th>Download Link</th></tr>
+        {% for trail in trailroutes %}
+        <tr><td><button id="routebutton{{trail['route']}}" class="btn btn-xs btn-default" onclick="displayRoute({{trail['route']}})">{{ trail['route'] }}</button></td>
+
+          <td>{{ trail['distance']}}</td><td> {{ trail['elevation_gain'] }}</td><td> {{ trail['elevation_loss'] }}</td>
+                 <td>{{trail['max_altitude']}}</td><td>{{trail['min_altitude']}}</td><td>{{trail['max_grade']}}</td><td>{{trail['min_grade']}}</td>
+                 <td>{{trail['repeated_percent']}}</td>
+                 <td><a href="/button/dowload_gpx?val={{trail['route']}}" download="PlanIt_route_{{trail['route']}}.xml.gpx">GPX</button></td>
+                </tr>
+        {% endfor %}
+        </table>
+
+
+      </div>
+
     </div>
-<br><br>
+  </div>
+
+  <div class="w3-row-padding w3-padding-64 w3-container">
+    <div class="w3-content">
+      <div class="w3-twothird">
 
 
-<div class="container">
-  <!--here's the input container so you can query after output is served-->
-  <div id="outmap" style=" position: relative;
-                           top: 0px;
-                           left: 00px;
-                           bottom: 0;
-                           right: 0;
-                           width: 750px;
-                           height: 500px;
-                           overflow: auto;"></div>
+                 <script>
+                 fetch('/model_output/profile_plot')
+                     .then(function(response) { return response.json() })
+                     .then(function(item) { return Bokeh.embed.embed_item(item, "profile_plot") })
+                 </script>
 
-    <script>
+    </div><!-- /.container -->
+  </div><!-- /.container -->
+</div><!-- /.container -->
+
+
+
+  <script>
 
       function decodeHtml(html) {
           var txt = document.createElement("textarea");
@@ -232,63 +304,15 @@
     //}
     </script>
 
-
- </div>
-
-<div id="profile_plot"></div>
-
- <script>
- fetch('/model_output/profile_plot')
-     .then(function(response) { return response.json() })
-     .then(function(item) { return Bokeh.embed.embed_item(item, "profile_plot") })
- </script>
+    <footer class="w3-container w3-padding-64 w3-center w3-opacity">
+    <div class="w3-container w3-black w3-center w3-opacity w3-padding-64">
+     <p>@Copyright 2020, Andrew Emerick. <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+       Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </footer>
 
 
-   <div class="container">
-     <div class="starter-template">
-       <h2>Results:</h2>
-       <p class="lead">Here are your routes! Click on the GPX links to download a GPX file for each route!</p>
-     </div>
-     <button id="clearmap" class="btn btn-s btn-default" onclick="clearMap()">Clear Map</button></br>
-     <table class="table table-hover">
-     <tr><th> Plot </br> Route</th><th>Distance ({{du}})</th><th>Elev. + ({{eu}})</th><th>Elev. - ({{eu}})</th>
-         <th>Max Elev. ({{eu}})</th><th>Min Elev. ({{eu}})</th><th>Max Grade (%)</th><th>Min Grade (%)</th><th> % Repeated</th>
-         <th>Download Link</th></tr>
-     {% for trail in trailroutes %}
-     <tr><td><button id="routebutton{{trail['route']}}" class="btn btn-xs btn-default" onclick="displayRoute({{trail['route']}})">{{ trail['route'] }}</button></td>
-
-       <td>{{ trail['distance']}}</td><td> {{ trail['elevation_gain'] }}</td><td> {{ trail['elevation_loss'] }}</td>
-              <td>{{trail['max_altitude']}}</td><td>{{trail['min_altitude']}}</td><td>{{trail['max_grade']}}</td><td>{{trail['min_grade']}}</td>
-              <td>{{trail['repeated_percent']}}</td>
-              <td><a href="/button/dowload_gpx?val={{trail['route']}}" download="PlanIt_route_{{trail['route']}}.xml.gpx">GPX</button></td>
-             </tr>
-     {% endfor %}
-     </table>
-
-    </div><!-- /.container -->
-   <div class="container">
-
-
-<!--
-     <div class="starter-template">
-       <h3>Another Result:</h3>
-       <p class="lead">Now we've taken the input and called a function from your package.<br>The result is {{the_result}}</p>
-     </div> -->
-
-     <form action="/" method="GET">
-       <div>
-         <button type="submit"  class="btn btn-default btn-lg">Reset and Compute a New Route!</button>
-       </div>
-    </form>
-  </br></br>
-
-
-     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-     <script src="static/js/bootstrap.min.js"></script>
-
-
-    </div><!-- /.container -->
-
+   <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+   <script src="static/js/bootstrap.min.js"></script>
 
   <!-- Bootstrap core JavaScript
   ================================================== -->
