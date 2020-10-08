@@ -30,7 +30,7 @@ import numpy as np
 
 
 SESSION_TYPE = 'filesystem'
-PERMANENT_SESSION_LIFETIME = 86400 # 24 hours in seconds
+PERMANENT_SESSION_LIFETIME = 3600 # 1 hour in seconds # 86400 # 24 hours in seconds
 app.config.from_object(__name__)
 Session(app)
 
