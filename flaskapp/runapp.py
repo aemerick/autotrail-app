@@ -144,6 +144,9 @@ def geocode():
 
 @app.route('/button/dowload_gpx', methods=['GET'])
 def button_download_gpx():
+    """
+    Download action for GPX files.
+    """
 
     if request.method == 'GET':
 
@@ -155,9 +158,12 @@ def button_download_gpx():
             raise RuntimeError
 
 
+        if not os.path.isdir(os.getcwd() + '/outputs/'):
+            os.mkdir(os.getcwd()+'/outputs')
+
+        # generate a unique filename:
         outname = os.getcwd() + "/outputs/route_" + str(uuid.uuid4()) + ".xml"
         session['tmap'].write_gpx_file(outname, nodes = session['possible_routes'][val])
-
         filename = "PlanIt_route_" + str(val) + ".xml"
 
         return send_file(outname,
@@ -471,16 +477,27 @@ def run_from_input(results, units='english'):
 
 
     distance = 0.5*(float(results['mindistance']) + float(results['maxdistance']))
-    eg = 0.5 * ( float(results['minelevation']) + float(results['maxelevation']))
+
+    try:
+        eg = 0.5 * ( float(results['minelevation']) + float(results['maxelevation']))
+    except:
+        eg = None
+
     n_routes = int(results['numroutes'])
 
 
-    target_values = {'distance' : distance, 'elevation_gain' : eg}
+    target_values = {'distance' : distance,
+                     'elevation_gain' : eg}
+
+    target_values = {'distance' : distance}
+
+    if not (eg is None):
+        target_values['elevation_gain'] = eg
 
     tcdict = {1 : 0, 2 : 0.25, 3 : 1, 4 : 10, 5: 100}
 
     tmap._default_weight_factors = {'distance'          : 1,
-                                    'elevation_gain'    : 0,
+                                    'elevation_gain'    : 1,
                                     'elevation_loss'    : 0,      # off
                                     'average_grade'     : 0,
                                     'average_max_grade' : 0,
@@ -499,8 +516,8 @@ def run_from_input(results, units='english'):
                                                        target_values,
                                                        n_routes=n_routes,
                                                        end_node = end_node,
-                                                                reinitialize=True,
-                                                                reset_used_counter=True)
+                                                       reinitialize=True,
+                                                       reset_used_counter=True)
 
     # get the dictionary of route statistics
     route_properties = [ tmap.route_properties(nodes=nodes,
@@ -537,7 +554,7 @@ def make_plot(tmap, possible_routes, units):
         height = 325
 
     plot = bokeh.figure(plot_height=height,
-                        plot_width=750)
+                        plot_width=900)
                         #sizing_mode='scale_width')
 
     if units == 'english':
