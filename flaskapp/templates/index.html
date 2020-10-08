@@ -101,7 +101,7 @@
      </form>
      {% endif %}      <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-padding-large">Code</a>
       <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-padding-large">App Code</a>
-      <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>      
+      <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>
     </div>
   </div>
 
@@ -419,10 +419,13 @@
 {% if not mapclat %}
 
       <form action="/button/geocode" method="GET">
-        <b1> <strong> Note: </strong> Choosing a location via this search box downloads OSM data (server-side) and may take up to 1-2 minutes to load.</br>
-             This uses OSM's geotag search, which will NOT always give the expected result (e.g. it isn't as good as Google!). </br></br>
+        <b1> This uses OpenStreetMaps (OSM) geotag search, which will NOT always give the expected result (e.g. it isn't as good as Google!):</br></br>
              <label for="fname">Enter Location to Load Trails:</label>
              <input type="text" id="lname" name="lname"><br><br>
+        <strong> Note: </strong> Choosing a location via this search box downloads OSM data (server-side) and may take up to 1-2 minutes to load.</br>
+                 The generated trail map is built within a 25 mile box around the desired location.</br>
+                 Finally, this website uses server-side cookies to save information from each user session to improve performance. </br>
+                 Use the "Choose a New Location" button (when present) to reset if you experience issues. </br></br>
         <input type="submit" class="btn btn-primary btn-lg" value="Make Map">
       </form>
     </br></br>

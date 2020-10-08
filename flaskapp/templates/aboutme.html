@@ -19,6 +19,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
   <style>
     body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     .w3-bar,h1,button {font-family: "Montserrat", sans-serif}
@@ -37,6 +39,8 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
   <![endif]-->
 </head>
+
+
 
 <div class="w3-top">
   <div class="w3-bar w3-red w3-card w3-left-align w3-large">
@@ -69,24 +73,82 @@
 
 <body>
  <!-- Container (About Section) -->
-<div class="w3-row-padding w3-light-grey w3-padding-12 w3-container">
+ <!-- <div class="w3-row-padding w3-light-grey w3-padding-12 w3-container"> -->
+  <div class="w3-content w3-container w3-padding-32" id="about">
+
   <h3 class="w3-center">ABOUT ME</h3>
-  <p class="w3-center"><em> Work in progres. Check back soon. </em></p>
-  <p> </p>
+  <p class="w3-center"><em> <i class="fa fa-github" style="font-size:24px"></i> <a target ='_blank' href="https://github.com/aemerick" >github.com/aemerick</a>
+    <i class="fa fa-linkedin-square" style="font-size:24px"></i> <a target = "_blank" href="https://www.linkedin.com/in/andrew-emerick">linkedin.com/in/andrew-emerick</a> </em></p>
+  <p>  Text here </p>
+
   <div class="w3-row">
     <div class="w3-col m6 w3-center w3-padding-large">
       <p><b><i class="fa fa-user w3-margin-right"></i>Andrew Emerick</b></p><br>
-      <img src="/static//images/aboutme_1.jpg" class="w3-round w3-image w3-opacity w3-hover-opacity-off" alt="Climbing" width="350">
+      <img src="/static/images/aboutme.jpg" class="w3-round w3-image w3-opacity w3-hover-opacity-off" alt="My profile" width="350">
     </div>
 
     <!-- Hide this text on small devices w3-hide-small  -->
     <div class="w3-col m6 w3-padding-large">
-      <p> </p>
+      <p> Work in progress. Stay tuned to hear more about this app and more about me. </p>
     </div>
   </div>
 
 </div>
 
+<div class="w3-content w3-container w3-padding-64" id="portfolio">
+  <h3 class="w3-center">Hitting the Trails</h3>
+  <!-- <p class="w3-center"><em></em></p><br> -->
+
+  <!-- Responsive Grid. Four columns on tablets, laptops and desktops. Will stack on mobile devices/small screens (100% width) -->
+  <div class="w3-row-padding w3-center">
+    <div class="w3-col m3">
+      <img src="/static/images/IMG_4006_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Sunrise, sleeping baby, and deer heading up the Mt. Whitney trail.">
+    </div>
+
+    <div class="w3-col m3">
+      <img src="/static/images/stgeorge_UT_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="The family on a trip to Utah (Snow Creek State Park)">
+    </div>
+
+    <div class="w3-col m3">
+      <img src="/static/images/cat_trails_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Collaborative trail planning with the cat.">
+    </div>
+
+    <div class="w3-col m3">
+      <img src="/static/images/trail_tree_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Somewhere near Mt. Islip in the San Gabriels.">
+    </div>
+  </div>
+
+  <div class="w3-row-padding w3-center w3-section">
+    <div class="w3-col m3">
+      <img src="/static/images/adirondacks_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Climbing in the Adirondacks. Trying to justify towing up the #4 cam.">
+    </div>
+
+    <div class="w3-col m3">
+      <img src="/static/images/strawberry_peak_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Starberry Peak in the Clouds. San Gabriel Mountains.">
+    </div>
+
+    <div class="w3-col m3">
+      <img src="/static/images/jtclimb_1_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Climbing a really short 5.11a in Joshua Tree.">
+    </div>
+    <div class="w3-col m3">
+      <img src="/static/images/baby_feet_square.jpg" style="width:100%" onclick="onClick(this)" class="w3-hover-opacity" alt="Family that hikes together stays together (thats a saying right?)">
+    </div>
+
+
+<!--
+    <button class="w3-button w3-padding-large w3-light-grey" style="margin-top:64px">LOAD MORE</button>
+-->
+  </div>
+</div>
+
+<!-- Modal for full size images on click-->
+<div id="modal01" class="w3-modal w3-black" onclick="this.style.display='none'">
+  <span class="w3-button w3-large w3-black w3-display-topright" title="Close Modal Image"><i class="fa fa-remove"></i></span>
+  <div class="w3-modal-content w3-animate-zoom w3-center w3-transparent w3-padding-64">
+    <img id="img01" src="/static/images/aboutme_1.jpg"  class="w3-image">
+    <p id="caption" class="w3-opacity w3-large"></p>
+  </div>
+</div>
 
 </body>
 
@@ -95,6 +157,30 @@
  <p>@Copyright 2020, Andrew Emerick. <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
    Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
 </footer>
+
+
+<script>
+// Modal Image Gallery
+function onClick(element) {
+  // I tweaked the base w3 template code a bit here to load square / full image if available
+  function showImage(imgsrc){
+    document.getElementById("img01").src = imgsrc;
+    document.getElementById("modal01").style.display = "block";
+    var captionText = document.getElementById("caption");
+    captionText.innerHTML = element.alt;
+  }
+
+  source = element.src;
+  $.get(source.replace('_square',''))
+      .done(function() {
+          // Full image exists, use that
+          showImage(source.replace('_square',''));
+      }).fail(function() {
+          // What we have is what we have, load that.
+          showImage(source);
+      })
+}
+</script>
 
  <!-- Bootstrap core JavaScript
  ================================================== -->
