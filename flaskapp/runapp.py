@@ -171,6 +171,10 @@ def button_download_gpx():
                          attachment_filename = filename)
 
 
+@app.route('/aboutme')
+def aboutme():
+    return render_template('aboutme.html')
+
 @app.route('/',  methods=["GET","POST"])
 def homepage():
 
