@@ -45,7 +45,11 @@
 <div class="w3-top">
   <div class="w3-bar w3-red w3-card w3-left-align w3-large">
     <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-
+    <form action="/" method="GET">
+      <div>
+        <button type="submit"  class="w3-bar-item w3-button w3-padding-large w3-white"><span title="Home">Return Home</span></button>
+      </div>
+   </form>
     <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Source Code</a>
     <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">App Source Code</a>
     <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>
@@ -53,6 +57,11 @@
 
   <!-- Navbar on small screens -->
   <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+    <form action="/" method="GET">
+      <div>
+        <button type="submit"  class="w3-bar-item w3-button w3-padding-large w3-white"><span title="Home">Return Home</span></button>
+      </div>
+   </form>
     <a href="https://github.com/aemerick/planit" target="_blank" class="w3-bar-item w3-button w3-padding-large">Code</a>
     <a href="https://github.com/aemerick/autotrail_app" target="_blank" class="w3-bar-item w3-button w3-padding-large">App Code</a>
     <a href="{{url_for('aboutme')}}" target="_blank" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white"> About </a>
@@ -76,12 +85,39 @@
  <!-- <div class="w3-row-padding w3-light-grey w3-padding-12 w3-container"> -->
   <div class="w3-content w3-container w3-padding-32" id="about">
 
-  <h3 class="w3-center">ABOUT ME</h3>
+  <h3 class="w3-center">ABOUT PLAN-IT TRAILS and ABOUT ME</h3>
   <p class="w3-center"><em> <i class="fa fa-github" style="font-size:24px"></i> <a target ='_blank' href="https://github.com/aemerick" >github.com/aemerick</a>
     <i class="fa fa-linkedin-square" style="font-size:24px"></i> <a target = "_blank" href="https://www.linkedin.com/in/andrew-emerick">linkedin.com/in/andrew-emerick</a> </em></p>
-  <p>  Text here </p>
+    <p> Plan-It Trails was conceived, built, and deployed entirely between Sep. 14 - Oct. 9 2020 as my project
+        for Insight Fellows Data Science program (fall session, 2020C-IDX). This was a whirlwind of an experience
+        and I hope you enjoy using this app. If you find a bug feel free to submit it as an issue on Github, or
+        drop me an e-mail at aemerick11 - AT - gmail.com. But <emph>most</emph> importantly, if you use this app
+        to generate a trail route and enjoy it, do let me know! </p>
 
-  <div class="w3-row">
+        <p> <strong> The details:</strong> PlanIt-Trails leverages the OpenStreetMaps database
+           to enable trial optimization world-wide. To generate the optimized routes, PlanIt-Trails
+           uses the open-source Python packages <a href="https://github.com/gboeing/osmnx/tree/243216b1f4574481dfe1b663d8e8dedac1acb419">OSMNx</a>
+           to fetch the OpenStreetMap data. OSMNx uses <a href="https://networkx.github.io/">Networkx</a>,
+           to build a graph object defining edges and nodes of the graph as the trail segments and their
+           intersections. Plan-It layers in a digital elevation model from NASA's Shuttle Radar
+           Topography Mission (parsed via: <a href="https://github.com/tkrajina/srtm.py">srtm</a>) in order to
+           define altitude, obtain more accurate distances, compute elevation gain, elevation loss, and
+           min, max, and average grade along each segment. </p>
+
+           <p><strong> The algorithm </strong> uses careful weighting of the trail edges to incentivise routing along (or de-incentivise
+           travel along) specific trail segments as the route is built. The algorithm begins by choosing a "next-node"
+           to travel to by obtaining the list of nodes within a paramaterized distance from the current node, and
+           selecting one that does not require violating the provided constraints to travel to. Then a shortest-path
+           Dijkstra algorithm (implemented in Networkx) is used to compute the weighted shortest path to that node.
+           The result is added to the route build so far, and this process is iterated upon until the route begins
+           to reach near its distance contraint. At this point it is guided back home / to the end point.
+           This dual iteration process, combined with a careful, dynamic weighting of the feature space
+           are what makes Plan-It work as well as it does. </p>
+
+           <p>You can view the source code for Plan-It Trails (Python) and this web-app (Python + Flask / HTML / JavaScript)
+              using the links at the top of the page. See below for more details about known issues and future work. </p>
+
+  <div class="w3-row" >
     <div class="w3-col m6 w3-center w3-padding-large">
       <p><b><i class="fa fa-user w3-margin-right"></i>Andrew Emerick</b></p><br>
       <img src="/static/images/aboutme.jpg" class="w3-round w3-image w3-opacity w3-hover-opacity-off" alt="My profile" width="350">
@@ -89,9 +125,85 @@
 
     <!-- Hide this text on small devices w3-hide-small  -->
     <div class="w3-col m6 w3-padding-large">
-      <p> Work in progress. Stay tuned to hear more about this app and more about me. </p>
+
+      <p> <strong>More about me.</strong> I am a former Astrophysicist turned data scientist and I am thrilled to work in
+          a field where I can regularly help solve complex, challenging problems using data. From my former life using
+          high-performance supercomputers to study galaxy evolution, I have a strong programming background that I
+          enjoy leveraging to build better models through more useable, readable, maintainable, and optimized code.
+          </p>
+
+          <p>
+          Beyond this I am the proud father of a one year old, and am happy to say that my wife and I have been able
+          to teach him to love being outdoors as much as we do. I hike, climb, run, cycle, and try to actively
+          enjoy the most out of life. </p>
+
+          <p> Finally, Plan-It Trails and my success at the Insight program owe themselves entirely to my wife,
+              who picked up ALL of my slack as a parent (and human being in general) during the intense time
+              that was (and is) Insight. </p>
+
+
+      </p>
     </div>
   </div>
+</div>
+
+  <div class="w3-content w3-container w3-padding-8" id="issues">
+
+  <div class="w3-row">
+      <div class="w3-center w3-padding-large">
+        <img src="/static/images/zug.jpg" class="w3-round w3-image w3-hover-opacity-off" alt="On the way up to Zugspitze" width="900">
+      </div>
+  </div>
+
+  <div class="w3-row">
+    <!-- Hide this text on small devices w3-hide-small  -->
+    <div class="m6 w3-padding-large">
+
+      <p> <strong>Known Issues and Future Work: </strong> You can learn A LOT about the quality of a project
+           by its ability to openly recognize its faults and limitations, and plans for future work. There
+           are a few known issues that I would like to improve upon and new work I'd like to do. This includes:
+           <ol>
+             <li> <strong>Accurate time-to-completion estimation.</strong> Perhaps what I'm most excited to work on, and my initial Insight
+                  project idea. In short, training a linear ML model on one's Strava activity history to make accurate
+                  predictions for route time-to-completion, improving dramatically over Strava's current calculator
+                  and allowing users to constrain on length of activity.
+             </li>
+
+             <li> <strong> Additional datasets. </strong> Building off of prior Insight fellows projects, it would be extremely interesting to layer
+                  in trail data from TrailRunningProject / HikingProject, using the user reviews and ratings from those trails to add in a
+                  "quality" feature to each segment to add the ability to try and force Plan-It to stay on generally more highly rated or popular
+                  paths (or actively avoid the most-well-travelled).
+             </li>
+
+             <li> <strong> Locally storing OSM. </strong> OpenStreetMap data is currently fetched for a given area each time, which makes things slow. While I use some
+                  caching to speed this up, it is very basic. With more time and resources I'd like to download the entire OSM database
+                  locally and store a fully engineered version on the server, allowing for more rapid and arbitrary graph
+                  construction. </li>
+
+            <li> <strong>UX.</strong> Let's face it, I'm not a front-end developer so the UI needs a ton of work. But a really cool
+                  feature that would make this a more powerful tool is the ability to
+                  take the generated route and then arbitrarily edit / cut / paste the generated route to smooth over any
+                  weird quirks or direct it to cool places that it may have missed. Right now if you want to edit a route you build
+                  in any other existing app you have to delete segments from the end to where you want to edit, make the edit, then rebuild. Annoying!.
+
+             <li> <strong>The digital elevation model</strong> is not complete. There are regions (particularly those right near cliff or valleys)
+                  that do not have values. This can be addressed using some smoothing perscription, but doing this well in all
+                  cases is not straightfoward. </li>
+
+             <li> <strong> Currecting inaccurate and missing data</strong> The OpenStreetMap database does not always provide reliable trail junctions.
+                  This limits the ability to build routes in some cases. It is challenging to come up with an algorithm to
+                  reliably stitch these together while also leaving ones that truly
+                  are separated separate. This is a mostly solved problem if I had access to a more reliable database like the background trail maps that
+                  AllTrails uses. Related to this, I'd like to also allow for travel over roads to connect trails which may be
+                  separated only by a road or a parking lot. Though doing this well again provides some unique challenges. </li>
+
+             <li> <strong> Geotags </strong> Switch to using the Google Maps geotag API instead of OpenStreetMap. </li>
+           </ol>
+         </p>
+    </div>
+
+  </div>
+
 
 </div>
 
@@ -154,8 +266,13 @@
 
 <footer class="w3-container w3-padding-64 w3-center w3-opacity">
 <div class="w3-container w3-black w3-center w3-opacity w3-padding-64">
+ <p>By using PlanIt-Trails, the user accepts all liability for anything that may occur during an activity inspired by or following the generated routes.
+    PlanIt-Trails does not guarantee that the underlying trail data is up to date or accurate, nor that the recommended trails are
+    safe to travel upon. Always check local land-use restrictions and potential closures before hitting the trails.
+    Be smart! Be safe! Leave no trace! And have fun! </p>
  <p>@Copyright 2020, Andrew Emerick. <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
    Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+
 </footer>
 
 
