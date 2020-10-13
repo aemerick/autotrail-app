@@ -517,7 +517,7 @@ def run_from_input(results, units='english'):
 
 
 
-    tcdict = {1 : 0, 2 : 2, 3 : 100, 4: 1000}
+    tcdict = {0: 0, 1 : 10, 2 : 100, 3 : 1000, 4: 10000}
 
     tmap._default_weight_factors = {'distance'          : 1,
                                     'elevation_gain'    : 1,
