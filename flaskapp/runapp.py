@@ -27,6 +27,8 @@ import ast
 import uuid
 import os
 import numpy as np
+import urllib
+import requests
 
 
 SESSION_TYPE = 'filesystem'
@@ -129,9 +131,27 @@ def button_display_trails():
 def geocode():
 
     if request.method == 'GET':
-        import osmnx.geocoder as geocoder
+
+        pkey = open('google_api.secret').readline().strip('\n')
+        url = 'https://maps.googleapis.com/maps/api/geocode/json?'
+
         lname = request.args.get('lname','')
-        lat, lng = geocoder.geocode(lname)
+
+        response = requests.get(url=url,
+                                params = {'address':urllib.parse.quote(lname),
+                                          'key':pkey})
+        data = response.json()
+
+        if data['status'] == 'OK':
+            loc = data['results'][0]['geometry']['location']
+            lat = loc['lat']
+            lng = loc['lng']
+        else:
+            print(response)
+            print("RUNAPP: Something went wrong. Using OSM geocoder!!!")
+            import osmnx.geocoder as geocoder
+            lname = request.args.get('lname','')
+            lat, lng = geocoder.geocode(lname)
 
         session['mapclat']=lat
         session['mapclng']=lng
@@ -141,6 +161,7 @@ def geocode():
         #print("DONE GEOCODING")
 
         return redirect(url_for('homepage', mapclat=lat, mapclng=lng))
+
 
 @app.route('/button/dowload_gpx', methods=['GET'])
 def button_download_gpx():
@@ -366,7 +387,7 @@ def mapclick():
 
 
 def generate_map(mapclat, mapclng,
-                 radius = 40233.6): # 50 miles (in m)
+                 radius = 80467.2): # 40233.6): # 50 miles (in m)
     """
     Download and set up map from osmnx. If the trail map object or the OSM
     object associated with the bounding box exists on file already, loads
@@ -478,50 +499,56 @@ def run_from_input(results, units='english'):
         print("Cannot find a node!!")
         raise RuntimeError
 
-
-
-    distance = 0.5*(float(results['mindistance']) + float(results['maxdistance']))
-
-    try:
-        eg = 0.5 * ( float(results['minelevation']) + float(results['maxelevation']))
-    except:
-        eg = None
-
     n_routes = int(results['numroutes'])
 
 
-    target_values = {'distance' : distance,
-                     'elevation_gain' : eg}
+    target_values_range = { 'distance' : (float(results['mindistance']), float(results['maxdistance']))}
 
-    target_values = {'distance' : distance}
+    try:
+        target_values_range['elevation_gain'] = (float(results['minelevation']),float(results['maxelevation']))
+    except:
+        print("FLASK: failing to make elevation gain range ", results['minelevation'], results['maxelevation'])
 
-    if not (eg is None):
-        target_values['elevation_gain'] = eg
+    try:
+        target_values_range['average_max_grade'] = int(results['maxgrade'])
+        target_values_range['average_min_grade'] = -int(results['maxgrade'])
+    except:
+        print("FLASK: failing to make max grades ", results['maxgrade'])
 
-    tcdict = {1 : 0, 2 : 0.25, 3 : 1, 4 : 10, 5: 100}
+
+
+    tcdict = {1 : 0, 2 : 2, 3 : 100, 4: 1000}
 
     tmap._default_weight_factors = {'distance'          : 1,
                                     'elevation_gain'    : 1,
                                     'elevation_loss'    : 0,      # off
                                     'average_grade'     : 0,
-                                    'average_max_grade' : 0,
-                                    'average_min_grade' : 0,
+                                    'average_max_grade' : 1,
+                                    'average_min_grade' : 1,
                                     'min_grade'         : 0,           # off
                                     'max_grade'         : 0,           # off
                                     'traversed_count'   : tcdict[results['backtrack']],    # very on
                                     'in_another_route'  : 1}
 
 
+    _, possible_routes, scores = tmap.find_route_constraint_range(start_node,
+                                                                  target_values_range,
+                                                                  end_node=end_node,
+                                                                  n_routes=n_routes,
+                                                                  n_constraints = 3,
+                                                                  reinitialize=True,
+                                                                  reset_used_counter=True
+                                                                  )
 
     #print('---', results)
     #print("---", start_node, end_node, target_values)
 
-    _, possible_routes, scores = tmap.multi_find_route(start_node,
-                                                       target_values,
-                                                       n_routes=n_routes,
-                                                       end_node = end_node,
-                                                       reinitialize=True,
-                                                       reset_used_counter=True)
+    #_, possible_routes, scores = tmap.multi_find_route(start_node,
+    #                                                   target_values,
+    #                                                   n_routes=n_routes,
+    #                                                   end_node = end_node,
+    #                                                   reinitialize=True,
+    #                                                   reset_used_counter=True)
 
     # get the dictionary of route statistics
     route_properties = [ tmap.route_properties(nodes=nodes,
