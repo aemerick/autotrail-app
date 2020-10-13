@@ -387,7 +387,7 @@ def mapclick():
 
 
 def generate_map(mapclat, mapclng,
-                 radius = 80467.2): # 40233.6): # 50 miles (in m)
+                 radius = 40233.6): # 40233.6): # 50 miles (in m)
     """
     Download and set up map from osmnx. If the trail map object or the OSM
     object associated with the bounding box exists on file already, loads
@@ -530,12 +530,14 @@ def run_from_input(results, units='english'):
                                     'traversed_count'   : tcdict[results['backtrack']],    # very on
                                     'in_another_route'  : 1}
 
+    tmap.backtrack = tcdict[results['backtrack']]
 
     _, possible_routes, scores = tmap.find_route_constraint_range(start_node,
                                                                   target_values_range,
                                                                   end_node=end_node,
                                                                   n_routes=n_routes,
                                                                   n_constraints = 3,
+                                                                  route_factor=1,
                                                                   reinitialize=True,
                                                                   reset_used_counter=True
                                                                   )
