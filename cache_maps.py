@@ -48,6 +48,10 @@ if __name__ == "__main__":
                  "Issaquah Washington",
                  "Boise Idaho",
                  "Yosemite National Park",
-                 "Tegernsee Germany"]
+                 "Great Smokey Mountains National Park",
+                 "Tegernsee Germany",
+                 "Lake District National Park, UK",
+                 "Bend, OR",
+                 "Big Basin Redwoods State Park, CA"]
 
     cache_maps(locations)
