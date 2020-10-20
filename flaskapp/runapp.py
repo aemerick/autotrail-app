@@ -133,17 +133,21 @@ def geocode():
     if request.method == 'GET':
 
         pkey = open('google_api.secret').readline().strip('\n')
-        url = 'https://maps.googleapis.com/maps/api/geocode/json?'
+
+        url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
 
         lname = request.args.get('lname','')
 
         response = requests.get(url=url,
-                                params = {'address':urllib.parse.quote(lname),
+                                params = {'input':lname,
+                                          'inputtype' : 'textquery',
+                                          'fields' : 'name,geometry',
                                           'key':pkey})
         data = response.json()
 
         if data['status'] == 'OK':
-            loc = data['results'][0]['geometry']['location']
+            # just grop the top candidate for now
+            loc = data['candidates'][0]['geometry']['location']
             lat = loc['lat']
             lng = loc['lng']
         else:
