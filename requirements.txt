@@ -112,7 +112,6 @@ Send2Trash==1.5.0
 Shapely @ file:///home/conda/feedstock_root/build_artifacts/shapely_1597990519654/work
 six @ file:///home/conda/feedstock_root/build_artifacts/six_1590081179328/work
 snuggs==1.4.7
-SRTM.py==0.3.6
 statsmodels @ file:///home/conda/feedstock_root/build_artifacts/statsmodels_1598551025620/work
 terminado==0.8.3
 testpath==0.4.4
