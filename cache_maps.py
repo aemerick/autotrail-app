@@ -15,8 +15,7 @@
 """
 import os
 import numpy as np
-import osmnx.geocoder as geocoder
-
+import requests
 
 from planit.osm_data import osm_process
 
@@ -26,12 +25,31 @@ def cache_maps(locations = ['Boulder, CO'], radius = 40233.6):
     location
     """
 
+    pkey = open('google_api.secret').readline().strip('\n')
 
     for name in locations:
         print("CACHING: ", name)
-        lat, lng = geocoder.geocode(name)
-        center_point = (lat,lng)
 
+
+        url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+        response = requests.get(url=url,
+                                params = {'input':name,
+                                          'inputtype' : 'textquery',
+                                          'fields' : 'name,geometry',
+                                          'key':pkey})
+        data = response.json()
+        if data['status'] == 'OK':
+            # just grop the top candidate for now
+            loc = data['candidates'][0]['geometry']['location']
+            lat = loc['lat']
+            lng = loc['lng']
+        else:
+            print("Failing to use google maps api to locate place")
+            print("response", response)
+            print("data", data)
+            raise RuntimeError
+
+        center_point = (lat,lng)
         tmap = osm_process.osmnx_trailmap(center_point = center_point,
                                   dist = radius)
 
@@ -52,6 +70,7 @@ if __name__ == "__main__":
                  "Tegernsee Germany",
                  "Lake District National Park, UK",
                  "Bend, OR",
-                 "Big Basin Redwoods State Park, CA"]
+                 "Big Basin Redwoods State Park, CA",
+                 "Austin, TX"]
 
     cache_maps(locations)
